@@ -510,11 +510,17 @@ update_last_update_reason(){
 
   echo "branch set: ${branch}"
   echo "regions set: ${regions}"
+
+  git checkout --quiet "${branch}"
   
   for REGION_DIR in ${regions}; do # REGION loop for push
     find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
       -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}\"/" 
   done
+
+  msg="Done updating LAST_UPDATE_REASON"
+  git add .
+  git commit --allow-empty -m "${msg}
 }
 
 ########################################################################################################################
@@ -1085,9 +1091,6 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
   # Create .old files for secrets files so it's easy to see the differences in a pinch.
   create_dot_old_files "${NEW_BRANCH}" "${PRIMARY_REGION_DIR}"
 
-  # Update LAST_UPDATE_REASON
-  update_last_update_reason "${NEW_BRANCH}" "${REGION_DIRS_SORTED}"
-
   # If requested, copy new k8s-configs files from the default git branches into their corresponding new branches.
   if "${RESET_TO_DEFAULT}"; then
     log "Not migrating '${K8S_CONFIGS_DIR}' because migration was explicitly skipped"
@@ -1095,9 +1098,8 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
     handle_changed_k8s_configs "${NEW_BRANCH}"
   fi
 
-  echo "Oscar app vars files: ${APP_ENV_VARS_FILES}"
-  APP_ENV_VARS_FILES="$(find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}")"
-  echo "Post oscar assignment: ${APP_ENV_VARS_FILES}"
+  # Update LAST_UPDATE_REASON
+  update_last_update_reason "${NEW_BRANCH}" "${REGION_DIRS_SORTED}"
 
   log "Done updating branch '${NEW_BRANCH}' for '${ENV}'"
 
