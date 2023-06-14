@@ -1007,6 +1007,12 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
         else
           log "Difference found between ${TEMPLATE_ENV_VARS_FILE} and ${OLD_ENV_VARS_FILE} - keeping the old one"
         fi
+      
+      echo "Oscar test 1"
+      for ENV_VARS_FILE in ${APP_ENV_VARS_FILES}; do
+        echo "First test"
+        sed -i "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ENV_VARS_FILE}"
+      done
 
       done # Loop for env_vars
     )
