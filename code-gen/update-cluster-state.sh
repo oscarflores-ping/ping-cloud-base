@@ -515,7 +515,7 @@ update_last_update_reason(){
   
   for REGION_DIR in ${regions}; do # REGION loop for push
     find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
-      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}\"/" 
+      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}\"/" {} \;
   done
 
   msg="Done updating LAST_UPDATE_REASON"
