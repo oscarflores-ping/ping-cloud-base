@@ -1010,6 +1010,9 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
         echo "Oscar vars file"
         echo "${ORIG_ENV_VARS_FILE}"
         pwd
+        ls k8s-configs
+        ls k8s-configs/us-west-2
+        ls k8s-configs/us-west-2/ping*
         sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ORIG_ENV_VARS_FILE}"
       # echo "Oscar test 1"
       # for ENV_VARS_FILE in ${APP_ENV_VARS_FILES}; do
