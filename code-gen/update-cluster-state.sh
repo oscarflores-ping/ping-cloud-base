@@ -512,11 +512,9 @@ update_last_update_reason(){
   echo "regions set: ${regions}"
   
   for REGION_DIR in ${regions}; do # REGION loop for push
-    echo "REGION dir within loop: ${REGION_DIR}"
+    find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
+      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}\"/" 
   done
-  echo "WITHIN function pre setting within function: ${APP_ENV_VARS_FILES}"
-  APP_ENV_VARS_FILES="$(find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}")"
-  echo "Vars files from within function post function setting: ${APP_ENV_VARS_FILES}"
 }
 
 ########################################################################################################################
