@@ -504,6 +504,18 @@ create_dot_old_files() {
   git commit --allow-empty -m "${msg}"
 }
 
+update_last_update_reason(){
+  local branch="$1"
+  local regions="$2"
+
+  echo "branch set: ${branch}"
+  echo "regions set: ${regions}"
+  for REGION_DIR in ${regions}; do # REGION loop for push
+    echo "REGION dir within loop: ${REGION_DIR}"
+  done
+  #APP_ENV_VARS_FILES="$(find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}")"
+}
+
 ########################################################################################################################
 # Copy new k8s-configs files from the default git branch into its new one.
 #
@@ -1008,25 +1020,6 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
           log "Difference found between ${TEMPLATE_ENV_VARS_FILE} and ${OLD_ENV_VARS_FILE} - keeping the old one"
         fi
 
-        msg="Updating LAST_UPDATE_REASON var"
-        sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ORIG_ENV_VARS_FILE}"
-        git add .
-        git commit --allow-empty -m "${msg}" 
-        # echo "Oscar vars file"
-        # echo "${ORIG_ENV_VARS_FILE}"
-        # pwd
-        # ls k8s-configs
-        # ls k8s-configs/us-west-2
-        # ls k8s-configs/us-west-2/ping*
-        # sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ORIG_ENV_VARS_FILE}"
-        # cat "${ORIG_ENV_VARS_FILE}"
-      # echo "Oscar test 1"
-      # for ENV_VARS_FILE in ${APP_ENV_VARS_FILES}; do
-      #   echo "First test"
-      #   echo ${ENV_VARS_FILE}
-      #   sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ENV_VARS_FILE}"
-      # done
-
       done # Loop for env_vars
     )
   done # REGION loop for generate
@@ -1091,6 +1084,9 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
   # Create .old files for secrets files so it's easy to see the differences in a pinch.
   create_dot_old_files "${NEW_BRANCH}" "${PRIMARY_REGION_DIR}"
 
+  # Update LAST_UPDATE_REASON
+  update_last_update_reason "${NEW_BRANCH}" "${REGION_DIRS_SORTED}"
+
   # If requested, copy new k8s-configs files from the default git branches into their corresponding new branches.
   if "${RESET_TO_DEFAULT}"; then
     log "Not migrating '${K8S_CONFIGS_DIR}' because migration was explicitly skipped"
@@ -1110,7 +1106,5 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
     ENV_BRANCH_MAP="${BRANCH_LINE}"
   fi
 done # ENV loop
-
-echo "Oscar hello world"
 # Print a README of next steps to take.
 print_readme
