@@ -1007,14 +1007,19 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
         else
           log "Difference found between ${TEMPLATE_ENV_VARS_FILE} and ${OLD_ENV_VARS_FILE} - keeping the old one"
         fi
-        echo "Oscar vars file"
-        echo "${ORIG_ENV_VARS_FILE}"
-        pwd
-        ls k8s-configs
-        ls k8s-configs/us-west-2
-        ls k8s-configs/us-west-2/ping*
+
+        msg="Updating LAST_UPDATE_REASON var"
         sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ORIG_ENV_VARS_FILE}"
-        cat "${ORIG_ENV_VARS_FILE}"
+        git add .
+        git commit --allow-empty -m "${msg}" 
+        # echo "Oscar vars file"
+        # echo "${ORIG_ENV_VARS_FILE}"
+        # pwd
+        # ls k8s-configs
+        # ls k8s-configs/us-west-2
+        # ls k8s-configs/us-west-2/ping*
+        # sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" "${ORIG_ENV_VARS_FILE}"
+        # cat "${ORIG_ENV_VARS_FILE}"
       # echo "Oscar test 1"
       # for ENV_VARS_FILE in ${APP_ENV_VARS_FILES}; do
       #   echo "First test"
@@ -1092,6 +1097,8 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
   else
     handle_changed_k8s_configs "${NEW_BRANCH}"
   fi
+
+  APP_ENV_VARS_FILES="$(find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}")"
 
   log "Done updating branch '${NEW_BRANCH}' for '${ENV}'"
 
