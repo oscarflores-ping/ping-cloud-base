@@ -520,7 +520,7 @@ update_last_update_reason(){
 
   msg="Done updating LAST_UPDATE_REASON"
   git add .
-  git commit --allow-empty -m "${msg}
+  git commit --allow-empty -m "${msg}"
 }
 
 ########################################################################################################################
