@@ -504,18 +504,22 @@ create_dot_old_files() {
   git commit --allow-empty -m "${msg}"
 }
 
+########################################################################################################################
+# Update the LAST_UPDATE_REASON variable in app env_vars files
+#
+# Arguments
+#   $1 -> The upgrade branch for the current env.
+#   $2 -> List of regions enabled for the customer.
+########################################################################################################################
 update_last_update_reason(){
   local branch="$1"
   local regions="$2"
 
-  echo "branch set: ${branch}"
-  echo "regions set: ${regions}"
-
   git checkout --quiet "${branch}"
   
-  for REGION_DIR in ${regions}; do # REGION loop for push
+  for REGION_DIR in ${regions}; do # REGION loop to find all env_vars files
     find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
-      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}\"/" {} \;
+      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" {} \;
   done
 
   msg="Done updating LAST_UPDATE_REASON"
@@ -1111,5 +1115,6 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
     ENV_BRANCH_MAP="${BRANCH_LINE}"
   fi
 done # ENV loop
+
 # Print a README of next steps to take.
 print_readme
