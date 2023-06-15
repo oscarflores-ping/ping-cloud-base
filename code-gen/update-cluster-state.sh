@@ -519,7 +519,7 @@ update_last_update_reason(){
   
   for REGION_DIR in ${regions}; do # REGION loop to find all env_vars files
     find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
-      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" {} \;
+      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade-oscar\"/" {} \;
   done
 
   msg="Done updating LAST_UPDATE_REASON"
