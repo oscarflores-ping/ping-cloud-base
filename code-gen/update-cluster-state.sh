@@ -1098,7 +1098,7 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
   fi
 
   # Update LAST_UPDATE_REASON
-  update_last_update_reason "${NEW_BRANCH}" "${REGION_DIRS_SORTED}"
+  update_last_update_reason
 
   log "Done updating branch '${NEW_BRANCH}' for '${ENV}'"
 
