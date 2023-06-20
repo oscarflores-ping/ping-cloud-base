@@ -515,12 +515,13 @@ update_last_update_reason(){
   local branch="$1"
   local regions="$2"
 
+  git branch -a
+
+  # switch to new branch and find all App env_vars
   git checkout --quiet "${branch}"
   
-  for REGION_DIR in ${regions}; do # REGION loop to find all env_vars files
-    find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
-      -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade-oscar\"/" {} \;
-  done
+  find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
+    -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade-oscar\"/" {} \;
 
   msg="Done updating LAST_UPDATE_REASON"
   git add .
