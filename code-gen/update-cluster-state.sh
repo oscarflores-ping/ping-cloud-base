@@ -512,18 +512,12 @@ create_dot_old_files() {
 #   $2 -> List of regions enabled for the customer.
 ########################################################################################################################
 update_last_update_reason(){
-  local branch="$1"
-  local regions="$2"
-
+  # Find all env_vars files and update variable
   git branch -a
+  find "${K8S_CONFIGS_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
+    -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" {} \;
 
-  # switch to new branch and find all App env_vars
-  git checkout --quiet "${branch}"
-  
-  find "${K8S_CONFIGS_DIR}/${REGION_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
-    -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade-oscar\"/" {} \;
-
-  msg="Done updating LAST_UPDATE_REASON"
+  msg="Auto-update LAST_UPDATE_REASON"
   git add .
   git commit --allow-empty -m "${msg}"
 }
