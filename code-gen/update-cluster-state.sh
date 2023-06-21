@@ -514,7 +514,7 @@ create_dot_old_files() {
 update_last_update_reason(){
   # Find all env_vars files and update variable
   git branch -a
-  find "${K8S_CONFIGS_DIR}" -type f -mindepth 2 -name "${ENV_VARS_FILE_NAME}" \
+  find "${K8S_CONFIGS_DIR}" -type f -name "${ENV_VARS_FILE_NAME}" \
     -exec sed -i "" "s/\(LAST_UPDATE_REASON=\).*/\1\"${NEW_VERSION}-upgrade\"/" {} \;
 
   msg="Auto-update LAST_UPDATE_REASON"
