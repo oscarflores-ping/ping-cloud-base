@@ -1,3 +1,12 @@
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: nr-license-key
+  annotations:
+    sealedsecrets.bitnami.com/managed: "true"
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -18,55 +27,31 @@ spec:
     spec:
       serviceAccountName: logstash-elastic
       initContainers:
-        - name: check-service-availability
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            allowPrivilegeEscalation: false
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/enrichment-bootstrap/dev:v1.18-release-branch-latest
-          imagePullPolicy: Always
-          command:
-            - sh
-            - $(CONTAINER_NAME).sh
-          env:
-            - name: CONTAINER_NAME
-              value: check-service-availability
-            - name: CHECK_SERVICE_URL
-              value: 'http://elasticsearch'
-            - name: CHECK_SERVICE_PORT
-              value: '9200'
-            - name: DESIRED_STATUS
-              value: green
         - name: wait-for-bootstrap-completed
           securityContext:
             runAsGroup: 2000
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
-          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
+          image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.12.1
           imagePullPolicy: IfNotPresent
           command:
             - sh
             - '-c'
             - >-
-              kubectl wait --for=condition=complete --timeout=300s -n
-              elastic-stack-logging job/logging-bootstrap
+              kubectl wait --for=condition=complete --timeout=900s -n
+              elastic-stack-logging job/opensearch-bootstrap
         - name: create-enrichment-cache-files
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000
             allowPrivilegeEscalation: false
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/enrichment-bootstrap/dev:v1.18-release-branch-latest
+          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/enrichment-bootstrap/dev:v1.19-release-branch-latest
           imagePullPolicy: Always
-          workingDir: /scripts
-          command:
-            - sh
-            - $(CONTAINER_NAME).sh
+          args:
+            - create_enrichment_cache_files
           env:
-            - name: CONTAINER_NAME
-              value: create-enrichment-cache-files
             - name: ENRICHMENT_TOR_FEED_URL
               value: 'https://check.torproject.org/exit-addresses'
             - name: ENRICHMENT_ALIEN_VAULT_FEED_URL
@@ -98,8 +83,13 @@ spec:
               cpu: "150m"
               memory: 100Mi
         - name: logstash
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/logstash/dev:v1.18-release-branch-latest
+          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/logstash/dev:v1.19-release-branch-latest
           imagePullPolicy: Always
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - "S3_BUCKET_NAME=${S3_BUCKET#s3://} /usr/local/bin/docker-entrypoint"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
@@ -130,6 +120,38 @@ spec:
               value: "true"
             - name: LS_JAVA_OPTS
               value: "-Xms1g -Xmx1g"
+            - name: XPACK_MONITORING_ENABLED
+              value: "false"
+            - name: OS_USER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: os-logstash-creds
+            - name: OS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: os-logstash-creds
+            - name: S3_BUCKET
+              valueFrom:
+                  configMapKeyRef:
+                    name: s3-raw-logs-bucket
+                    key: bucketName
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: cluster-info
+                  key: logs.region
+            - name: CW_CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cluster-info
+                  key: cluster.name
+            - name: NR_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nr-license-key
+                  key: NEW_RELIC_LICENSE_KEY
           envFrom:
             - configMapRef:
                 name: elk-environment-variables
@@ -165,6 +187,15 @@ spec:
             - containerPort: 8080
               name: http-log-input
               protocol: TCP
+            - containerPort: 8081
+              name: http-s3-input
+              protocol: TCP
+            - containerPort: 8082
+              name: http-cw-input
+              protocol: TCP
+            - containerPort: 8083
+              name: http-nr-input
+              protocol: TCP
           volumeMounts:
             - name: logstash-pipelines
               mountPath: /usr/share/logstash/config/pipelines.yml
@@ -176,13 +207,18 @@ spec:
             - name: logstash-pipeline-customer
               mountPath: /usr/share/logstash/pipeline/customer
               readOnly: true
-            - name: logstash-pipeline-alerts
-              mountPath: /usr/share/logstash/pipeline/alerts
+            - name: logstash-pipeline-s3
+              mountPath: /usr/share/logstash/pipeline/s3
               readOnly: true
-            - name: enrichment-logstash-search-templates
+            - name: logstash-pipeline-cw
+              mountPath: /usr/share/logstash/pipeline/cloudwatch
+            - name: logstash-pipeline-nr
+              mountPath: /usr/share/logstash/pipeline/newrelic
+              readOnly: true
+            - name: logstash-search-template
               mountPath: /etc/logstash/templates
               readOnly: true
-            - name: enrichment-elasticsearch-index-templates
+            - name: os-index-templates
               mountPath: /usr/share/logstash/index_templates
               readOnly: true
             - name: enrichment-cache-files
@@ -191,17 +227,20 @@ spec:
             - name: logstash-efs
               mountPath: /usr/share/logstash/data/queue
               readOnly: false
+            - name: os-certs
+              mountPath: /usr/share/logstash/certs
         # Sidecar enrichment container which updates Logstash dictionaries
         - name: enrichment-sidecar
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/enrichment-bootstrap/dev:v1.18-release-branch-latest
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/enrichment-bootstrap/dev:v1.19-release-branch-latest
           imagePullPolicy: Always
-          workingDir: /scripts
-          command:
-            - sh
-            - $(CONTAINER_NAME).sh
+          args:
+            - enrichment_sidecar
           env:
-            - name: CONTAINER_NAME
-              value: enrichment-sidecar
             - name: ENRICHMENT_TOR_FEED_URL
               value: 'https://check.torproject.org/exit-addresses'
             - name: ENRICHMENT_ALIEN_VAULT_FEED_URL
@@ -233,23 +272,32 @@ spec:
         - name: logstash-pipeline-customer
           configMap:
             name: logstash-pipeline-customer
-        - name: logstash-pipeline-alerts
+        - name: logstash-pipeline-s3
           configMap:
-            name: logstash-pipeline-alerts
+            name: logstash-pipeline-s3
+        - name: logstash-pipeline-cw
+          configMap:
+            name: logstash-pipeline-cw
+        - name: logstash-pipeline-nr
+          configMap:
+            name: logstash-pipeline-nr
         - name: logstash-pipelines
           configMap:
             name: logstash-pipelines
-        - name: enrichment-logstash-search-templates
+        - name: logstash-search-template
           configMap:
-            name: enrichment-logstash-search-templates
-        - name: enrichment-elasticsearch-index-templates
+            name: logstash-search-template
+        - name: os-index-templates
           configMap:
-            name: enrichment-elasticsearch-index-templates
+            name: os-index-templates
         - name: enrichment-cache
           configMap:
             name: enrichment-cache
         - name: enrichment-cache-files
           emptyDir: {}
+        - name: os-certs
+          secret:
+            secretName: opensearch-cert
   serviceName: logstash-elastic
   volumeClaimTemplates:
     - metadata:
@@ -272,6 +320,11 @@ metadata:
   name: logstash-elastic
   labels:
     app: logstash-elastic
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/scheme: "http"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "9198"
 spec:
   selector:
     app: logstash-elastic
@@ -282,6 +335,12 @@ spec:
       name: http-log-input
     - port: 9198
       name: metrics
+    - port: 8081
+      name: http-s3-input
+    - port: 8082
+      name: http-cw-input
+    - port: 8083
+      name: http-nr-input
 
 ---
 apiVersion: v1
@@ -323,4 +382,13 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: logstash-elastic
-
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: os-logstash-creds
+  annotations:
+    sealedsecrets.bitnami.com/managed: "true"
+data:
+  username: bG9nc3Rhc2g=
+  password: bWk3ZWl0ZTJvb25vbzhFa3UxdWZvbzRlZ2gxamFpajI=

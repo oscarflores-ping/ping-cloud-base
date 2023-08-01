@@ -160,7 +160,7 @@ on_terminate() {
   # kill kustomize command as it tends to hang
   kill -9 $kustomize_pid
   # kill rest of current script
-  kill -9 $$
+  exit 0
 }
 
 # Main script

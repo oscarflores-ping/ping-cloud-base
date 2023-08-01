@@ -50,6 +50,7 @@ PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME}
 PLATFORM_EVENT_QUEUE_NAME=${PLATFORM_EVENT_QUEUE_NAME}
 PLATFORM_EVENT_QUEUE_POLL_BATCH_SIZE=1
 PLATFORM_EVENT_QUEUE_POLL_INTERVAL_SECONDS=2
+CUSTOMER_SSO_SSM_PATH_PREFIX=${CUSTOMER_SSO_SSM_PATH_PREFIX}
 ORCH_API_SSM_PATH_PREFIX=${ORCH_API_SSM_PATH_PREFIX}
 SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX}
 ARGOCD_CDE_ROLE_SSM_TEMPLATE=${ARGOCD_CDE_ROLE_SSM_TEMPLATE}
@@ -161,22 +162,22 @@ PING_IDENTITY_DEVOPS_KEY=${PING_IDENTITY_DEVOPS_KEY}
 ############################################################
 # Ping application image tags
 ############################################################
-PINGACCESS_IMAGE_TAG=v1.18-release-branch-latest
-PINGACCESS_WAS_IMAGE_TAG=v1.18-release-branch-latest
-PINGFEDERATE_IMAGE_TAG=v1.18-release-branch-latest
-PINGDIRECTORY_IMAGE_TAG=v1.18-release-branch-latest
-PINGDELEGATOR_IMAGE_TAG=v1.18-release-branch-latest
-PINGCENTRAL_IMAGE_TAG=v1.18-release-branch-latest
-PINGDATASYNC_IMAGE_TAG=v1.18-release-branch-latest
+PINGACCESS_IMAGE_TAG=v1.19-release-branch-latest
+PINGACCESS_WAS_IMAGE_TAG=v1.19-release-branch-latest
+PINGFEDERATE_IMAGE_TAG=v1.19-release-branch-latest
+PINGDIRECTORY_IMAGE_TAG=v1.19-release-branch-latest
+PINGDELEGATOR_IMAGE_TAG=v1.19-release-branch-latest
+PINGCENTRAL_IMAGE_TAG=v1.19-release-branch-latest
+PINGDATASYNC_IMAGE_TAG=v1.19-release-branch-latest
 
 ############################################################
 # Ping solution image tags
 ############################################################
-METADATA_IMAGE_TAG=v1.18-release-branch-latest
-BOOTSTRAP_IMAGE_TAG=v1.18-release-branch-latest
-HEALTHCHECK_IMAGE_TAG=v1.18-release-branch-latest
-P14C_INTEGRATION_IMAGE_TAG=v1.18-release-branch-latest
-ANSIBLE_BELUGA_IMAGE_TAG=v1.18-release-branch-latest
+METADATA_IMAGE_TAG=v1.19-release-branch-latest
+BOOTSTRAP_IMAGE_TAG=v1.19-release-branch-latest
+HEALTHCHECK_IMAGE_TAG=v1.19-release-branch-latest
+P14C_INTEGRATION_IMAGE_TAG=v1.19-release-branch-latest
+ANSIBLE_BELUGA_IMAGE_TAG=v1.19-release-branch-latest
 
 ############################################################
 # Cluster name variables
@@ -218,7 +219,7 @@ PA_WAS_ENGINE_PUBLIC_HOSTNAME=pingaccess-was.${DNS_ZONE_DERIVED}
 
 PROMETHEUS_PUBLIC_HOSTNAME=prometheus.${DNS_ZONE_DERIVED}
 GRAFANA_PUBLIC_HOSTNAME=monitoring.${DNS_ZONE_DERIVED}
-KIBANA_PUBLIC_HOSTNAME=logs.${DNS_ZONE_DERIVED}
+OSD_PUBLIC_HOSTNAME=logs.${DNS_ZONE_DERIVED}
 ARGOCD_PUBLIC_HOSTNAME=argocd.${DNS_ZONE_DERIVED}
 
 HEALTHCHECK_HTTPBIN_PA_WAS_PUBLIC_HOSTNAME=healthcheck-httpbin-pa-was.${DNS_ZONE_DERIVED}
@@ -254,7 +255,7 @@ EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED}"
 ########################################################################################################################
 
 # Default argo-events notification configuration
-NOTIFICATION_ENABLED=false
+NOTIFICATION_ENABLED=true
 SLACK_CHANNEL=${SLACK_CHANNEL}
 NOTIFICATION_ENDPOINT=http://webhook-eventsource-svc.argo-events:12999/notification
 
@@ -264,7 +265,7 @@ PROM_SLACK_CHANNEL=${PROM_SLACK_CHANNEL}
 
 # Dashboards repo variables
 DASH_REPO_URL=https://github.com/pingidentity/ping-cloud-dashboards
-DASH_REPO_BRANCH=v1.18-dev-branch
+DASH_REPO_BRANCH=v1.19-dev-branch
 
 # Healthcheck variables
 CLUSTER_HEALTHCHECK_SCHEDULE="* * * * *"

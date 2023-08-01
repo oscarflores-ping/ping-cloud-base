@@ -1,5 +1,101 @@
 # Changelog
 
+### 1.19.0.0
+
+- Create a new init container to upgrade PA and PA-WAS and mount volume to admin pod once upgrade is successful
+- Update bootstrap to create davinci-configuration secret
+- Add new seal secrets script for MonoRepo breakup
+- Updating kustomize build options within ArgoCD to support Helm
+- Fix: kubernetes-dashboards configmap "Too long" error
+- Replace ElasticSearch and Kibana by OpenSearch stack
+- Add OpenSearch monitoring and alerting
+- Improve logstash grok patterns to prevent execution timeouts
+- Add resource (cpu & memory) limit and request for every product Job and Cronjob
+- Update prometheus alerts with links to the runbooks
+- Added new Prometheus alerts for Kubernetes metrics
+- Update integration tests to handle SSM parameters, rather than an explicit s3 bucket prefix
+- Update nginx-ingress-controller to v1.6.4 to support EKS 1.26
+- Create new RBAC rules , ping role and service accounts for PD backups and restore
+- Update PD backup/restore integration tests
+- Configure Lifecycle policy for PingFederate Engines
+- Update kube-state-metrics to v2.8.1
+- Move S3, CloudWarch, Newrelic outputs from Fluentbit to Logstash pipelines
+- Mirror our own version of newrelic images
+- [need before EKS 1.26] autoscaling/v2beta2 API version of HorizontalPodAutoscaler is no longer served as of v1.25
+- Update PGO dashboards to use grafana CRD
+- [EKS 1.26] service.alpha.kubernetes.io/tolerate-unready-endpoints (deprecated)
+- Add CW Agent IRSA role
+- Update PCB with toolkit image used as replacement for bitnami/kubectl
+- Modified git-ops-command.sh script to handle the SIGTERM signal appropriately.
+- Upgrade Kustomize to 5.0.3
+- Re-enable PingCentral for CI/CD dev environments which are now deployed using generate-cluster-state.sh
+- Migrated 'profiles' directory away from root of PCB, and into 'code-gen' root dir.  Also removed 'aws' subdir.
+- Improve alerts. JSON format + link to runbook
+- Limit backup/restore logging for PD
+- enrichment-bootstrap Docker image scripts refactoring
+- Change PD alerts to see more specific errors
+- Update cluster-autoscaler v1.27.0/1.27.1 for eks 1.27
+
+_Changes:_
+
+- [X] PDO-4606 Create a new init container to upgrade PA and PA-WAS and mount volume to admin pod once upgrade is successful
+- [X] PDO-4779 Modify seal.sh script to work for microservices
+- [X] PDO-4868 Update update-cluster-state script for MonoRepo
+- [X] PDO-4896 Update ping-cloud-base karpenter version to v0.28.1
+= [X] PDO-5005 Update generate-cluster-state script to pull profiles from code-gen dir
+- [X] PDO-5110 OpenSearch migration: Install Opensearch side-by-side with Elastic
+- [X] PDO-5112 OpenSearch migration: Migrate index templates
+- [X] PDO-5113 OpenSearch migration: Change logstash pipelines to send data to OS instead ES
+- [X] PDO-5114 OpenSearch migration: Migrate PA dashboard
+- [X] PDO-5116 OpenSearch migration: Migrate PF dashboards
+- [X] PDO-5135 Implement IRSA role for aws cloud watch agent
+- [X] PDO-5145 OpenSearch migration: Develop index migration job
+- [X] PDO-5152 OpenSearch migration: Rewrite bootstrap scripts
+- [X] PDO-5158 Configure PA WAS from Shared P1 Tenant
+- [X] PDO-5164 [EKS 1.26] service.alpha.kubernetes.io/tolerate-unready-endpoints (deprecated)
+- [X] PDO-5244 OpenSearch migration: Enable transport layer security
+- [X] PDO-5245 OpenSearch migration: Update grafana dashboards datasource
+- [X] PDO-5246 Opensearch migration: Migrate alerts
+- [X] PDO-5249 [need before EKS 1.26] autoscaling/v2beta2 API version of HorizontalPodAutoscaler is no longer served as of v1.25
+- [X] PDO-5254 Move all external outputs from Fluentbit to Logstash pipelines
+- [X] PDO-5258 OpenSearch migration: Refactor bootstrap scripts
+- [X] PDO-5270 Replace all  long alerts descriptions by short ones with links to runbook
+- [X] PDO-5301 Logstash: Improve grok patterns to prevent execution timeouts
+- [X] PDO-5307 OpenSearch migration: Implement Monitoring
+- [X] PDO-5314 Update bootstrap to create davinci-configuration secret
+- [X] PDO-5320 BUGFIX: found_distance_alert and other found* fields are not present in pf-audit* index documents
+- [X] PDO-5333 ArgoCD authentication to private ECR for Helm
+- [X] PDO-5358 OpenSearch Migration: Refactor OS Code as Needed
+- [X] PDO-5371 Update PCB Pipeline to deploy CDE dev Environment
+- [X] PDO-5373 PingCentral testing in PCB Pipeline CDE deployment
+- [X] PDO-5396 Create new RBAC rules , ping role and service accounts for PD backups and restore 
+- [X] PDO-5400 Update PD backup/restore integration tests
+- [X] PDO-5408 Add boolean flag to skip pod liveness probe script for PingFederate engines, PingAccess/WAS engines, and PingDirectory
+- [X] PDO-5409 Add ability to Update Upgrade Scripts w/o Release of New Beluga Version
+- [X] PDO-5418 Add resource (cpu & memory) limit and request for every product Job and Cronjob
+- [X] PDO-5434 Upgrade Kustomize to 5.0.3
+- [X] PDO-5435 Update values.yaml files structure
+- [X] PDO-5467 When rolling pods NLB connection draining isn't occuring causing service interruption
+- [X] PDO-5527 OpenSearch Post-Migration: Alerting improvements
+- [X] PDO-5543 New Prometheus alerts for Kubernetes metrics
+- [X] PDO-5545 Change PD alerts to see more specific errors
+- [X] PDO-5549 Update kube-state-metrics cluster tool to v2.8.1 for EKS 1.26
+- [X] PDO-5558 Mirror our own version of newrelic images
+- [X] PDO-5571 Update nginx-ingress-controller to v1.6.4 to support EKS 1.26
+- [X] PDO-5601 os-dashboards-pf configMap breaks developer, and new ci/cd deploys
+- [X] PDO-5647 Handle SIGTERM properly in enrichment-bootstrap
+- [X] PDO-5654 Fluentbit Kubernetes filter is not adding metadata into some events
+- [X] PDO-5655 OS: Logs for the pf-transaction-* index are not filtered
+- [X] PDO-5659 git-ops-command.sh responds properly to SIGTERM
+- [X] PDO-5671 OS: grokparsefailure in pingaccess logs
+- [x] PDO-5673 OS: Missed logs in PingAccess Indices
+- [X] PDO-5705 Update PCB with toolkit image used as replacement for bitnami/kubectl
+- [X] PDO-5709 Fix intermittent pingone integration test failures
+- [X] PDO-5718 Update PGO dashboards to use grafana CRD
+- [X] PDO-5724 Limit backup/restore logging for PD
+- [X] PDO-5741 OS: Index migration fails for shrink-*-logstash-* indexes
+- [X] PDO-5801 Update cluster-autoscaler v1.27.0/1.27.1 for eks 1.27
+
 ### 1.18.0.0
 
 - Enable users to download or upload user reports in Delegated Admin
@@ -14,7 +110,7 @@
 - Selectively restore a backend in PD
 - Capture hourly PingDirectory CSD data
 - Enable and manage daily encrypted exports
-- Updated external-dns to v0.13.1 
+- Updated external-dns to v0.13.1
 - Update cluster tools to latest version: kube-state-metrics v2.6.0
 - Remove PA/PF SIEM console logging
 - Updated cluster-autoscaler to v1.23.0
@@ -86,6 +182,11 @@
 - Upgrade Postgres Operator (PGO) to 5.3.1 to support EKS v1.25
 - Add PGO Backups Jobs TTL
 - Add region env vars to cluster-health-environment-variables configmap
+- Auto update LAST_UPDATE_REASON within app env_vars on upgrade
+- Update healthcheck configmaps to include primary region admin API pod names
+- Update PingAccess configmap patch to include HEALTHCHECK_HTTPBIN_PA_PUBLIC_HOSTNAME
+- Add BACKENDS_TO_RESTORE variable to restore-op.sh script for running PingDirectory restore job
+- Backup scripts notifications are enabled by default
 
 _Changes:_
 
@@ -167,6 +268,7 @@ _Changes:_
 - [X] PDO-5144 Add logstash/fluent-bit readiness/liveness probe
 - [X] PDO-5147 Add logstash metrics to prometheus
 - [X] PDO-5148 Modify Prometheus query for all backup alerting to only include the primary pod
+- [X] PDO-5157 Configure customer group from Shared P1 Tenant
 - [X] PDO-5191 Update image_map to align with tagging process
 - [X] PDO-5217 Increase replica count (min=7, max=9) within prod/large for Nginx Ingress Controller
 - [X] PDO-5221 'Field "responseCode.keyword" not found' on the 'Ping Access - Response Codes Over Time' visualization
@@ -190,6 +292,7 @@ _Changes:_
 - [X] PDO-5377 Patch CA to balance node across all AZs
 - [X] PDO-5390 nri-bundle-nrk8s-kubelet-* pods running by CDE stuck in Pending state
 - [X] PDO-5393 Bugfix - secondary CSR missing app dir
+- [X] PDO-5410 Auto-Update the Last Update Reason
 - [X] PDO-5419 Bugfix - remove monitoring & logging from secondary
 - [X] PDO-5415 Bugfix - PA-WAS ext ingress is missing from non-customer-hub environments
 - [X] PDO-5433 Update/Disable healthchecks
@@ -200,8 +303,14 @@ _Changes:_
 - [X] PDO-5510 Update all healthchecks to use k8s service endpoints
 - [X] PDO-5525 Add PGO Backups Jobs TTL
 - [X] PDO-5553 Bugfix: remove-from-secondary-patch is broken for logstash-pipeline-alerts
+- [X] PDO-5556 Fix PingAccess healthchecks
+- [X] PDO-5610 Add BACKENDS_TO_RESTORE variable to restore-op.sh script for running PingDirectory restore job
 - [X] PDO-5611 PD Healthchecks include k8s cluster name
 - [X] PDO-5614 Bugfix: 'cluster_name' filter issue in ELK and Grafana on prod CDE
+- [X] PDO-5646 Warning messages in cert-manager pod logs
+- [X] PDO-5648 [PORT PDO-5508] Extend PingDirectory replica count to up to 50 pods per region and 11 base DNs if needed
+- [X] PDO-5650 set NOTIFICATION_ENABLED to True by default
+- [X] PDO-5690 v1.18 Prepare for Ability to Update Upgrade Scripts w/o Release of New Beluga Version
 
 ### 1.17.0.0
 

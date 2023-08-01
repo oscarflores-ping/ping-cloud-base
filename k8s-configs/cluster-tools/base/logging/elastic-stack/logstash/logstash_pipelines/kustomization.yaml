@@ -5,4 +5,6 @@ resources:
 - logstash_pipelines.yaml
 - main
 - customer
-- alerts
+- s3
+- cloudwatch
+- newrelic

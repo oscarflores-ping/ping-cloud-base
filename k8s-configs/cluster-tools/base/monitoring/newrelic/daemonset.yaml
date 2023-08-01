@@ -44,7 +44,7 @@ spec:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
+          image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.12.1
           command: [ "/bin/sh", "-c" ]
           args: [ "kubectl get secret $(SECRET_NAME) && echo 'INFO: NR secret object found, skipping waiting for job completion.' || kubectl wait --for=condition=Complete --timeout=$(WAIT_TIMEOUT_SEC)s job/$(JOB_NAME)" ]
           env:
@@ -56,7 +56,7 @@ spec:
               value: "newrelic-license-key"
       containers:
         - name: controlplane
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/nri-kubernetes/dev:v1.18-release-branch-latest
+          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/nri-kubernetes/dev:v1.19-release-branch-latest
           imagePullPolicy: Always
           securityContext:
             privileged: false
@@ -229,7 +229,7 @@ spec:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
+          image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.12.1
           command: [ "/bin/sh", "-c" ]
           args: [ "kubectl get secret $(SECRET_NAME) && echo 'INFO: NR secret object found, skipping waiting for job completion.' || kubectl wait --for=condition=Complete --timeout=$(WAIT_TIMEOUT_SEC)s job/$(JOB_NAME)" ]
           env:
@@ -241,7 +241,7 @@ spec:
               value: "newrelic-license-key"
       containers:
         - name: kubelet
-          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/nri-kubernetes/dev:v1.18-release-branch-latest
+          image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/nri-kubernetes/dev:v1.19-release-branch-latest
           imagePullPolicy: Always
           securityContext:
             privileged: false

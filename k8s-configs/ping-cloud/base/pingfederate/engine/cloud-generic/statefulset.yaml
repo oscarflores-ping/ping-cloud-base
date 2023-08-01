@@ -45,7 +45,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         env:
           - name: NAMESPACE
@@ -62,7 +62,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.12.1
         imagePullPolicy: IfNotPresent
         command:
         - /copy-dependencies.sh
@@ -95,7 +95,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -149,7 +149,7 @@ spec:
             name: pingfederate-environment-variables
       containers:
       - name: pingfederate
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingfederate/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingfederate/dev:v1.19-release-branch-latest
         securityContext:
           runAsGroup: 9999
           runAsNonRoot: true
@@ -230,6 +230,10 @@ spec:
         - name: data-dir
           mountPath: /opt/staging/solutions_artifacts
           subPath: solutions_artifacts
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
         readinessProbe:
           exec:
             command: [ /opt/staging/hooks/99-pf-engine-liveness.sh ]
@@ -252,7 +256,7 @@ spec:
           runAsGroup: 9999
           runAsNonRoot: true
           runAsUser: 9031
-        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/prometheus-json-exporter/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/prometheus-json-exporter/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         env:
           - name: SERVICE_SHORTNAME

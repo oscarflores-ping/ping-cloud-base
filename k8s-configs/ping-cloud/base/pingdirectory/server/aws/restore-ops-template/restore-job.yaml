@@ -17,7 +17,7 @@ spec:
   backoffLimit: 0
   template:
     spec:
-      serviceAccountName: ping-serviceaccount
+      serviceAccountName: pingdirectory-ops-serviceaccount
       affinity:
         # This podAffinity rule is designed to deploy Backup/restore job to the same AZ as its targeted PingDirectory server
         podAffinity:
@@ -57,8 +57,14 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
         command:
         - /opt/in/restore.sh
         ports:
@@ -94,6 +100,8 @@ spec:
           value: "true"
         - name: BACKUP_FILE_NAME
           value: "${BACKUP_FILE_NAME}"
+        - name: BACKENDS_TO_RESTORE
+          value: "${BACKENDS_TO_RESTORE}"
         - name: ROOT_USER_PASSWORD
           valueFrom:
             secretKeyRef:

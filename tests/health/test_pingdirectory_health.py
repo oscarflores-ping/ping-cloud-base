@@ -13,10 +13,10 @@ class TestPingDirectoryHealth(TestHealthBase):
     prometheus_port = "9090"
 
     def setUp(self) -> None:
-        self.ping_cloud_ns = next((ns for ns in self.get_namespace_names() if ns.startswith(self.ping_cloud)), self.ping_cloud)
-        self.pod_names = self.get_deployment_pod_names("role=pingdirectory", self.ping_cloud_ns)
-        self.env_vars = self.get_configmap_values(self.ping_cloud, self.configmap_name)
-        self.k8s_cluster_name = f"{self.env_vars.get('CLUSTER_STATE_REPO_BRANCH', '')}-{self.env_vars.get('TENANT_NAME')}-{self.env_vars.get('REGION')}"
+        self.ping_cloud_ns = next((ns for ns in self.k8s.get_namespace_names() if ns.startswith(self.ping_cloud)), self.ping_cloud)
+        self.pod_names = self.k8s.get_deployment_pod_names("class=pingdirectory-server", self.ping_cloud_ns)
+        self.env_vars = self.k8s.get_configmap_values(self.ping_cloud, self.configmap_name)
+        self.k8s_cluster_name = f"{self.env_vars.get('CLUSTER_NAME', '')}-{self.env_vars.get('TENANT_NAME')}-{self.env_vars.get('REGION')}"
 
     def prometheus_test_patterns_by_pod(self, query: str):
         # baseDN pattern (k8s-cluster-name pingdirectory-N example.com query)
@@ -29,7 +29,7 @@ class TestPingDirectoryHealth(TestHealthBase):
         self.deployment_exists()
 
     def test_health_check_has_pingdirectory_results(self):
-        res = requests.get(self.endpoint, verify=False)
+        res = requests.get(self.healthcheck_endpoint, verify=False)
         self.assertIn(
             self.pingdirectory,
             res.json()["health"].keys(),

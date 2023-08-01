@@ -12,7 +12,7 @@ class TestPingAccessHealth(TestHealthBase):
     admin_port_env_var = "PA_ADMIN_PORT"
 
     def test_region_env_vars_in_pod(self):
-        env_vars = self.get_pod_env_vars(self.health, self.label)
+        env_vars = self.k8s.get_pod_env_vars(self.health, self.label)
         for expected_ev in ["REGION=", "TENANT_DOMAIN="]:
             with self.subTest(env_var=expected_ev):
                 self.assertTrue(
@@ -23,7 +23,7 @@ class TestPingAccessHealth(TestHealthBase):
         self.deployment_exists()
 
     def test_health_check_has_pingaccess_results(self):
-        res = requests.get(self.endpoint, verify=False)
+        res = requests.get(self.healthcheck_endpoint, verify=False)
         self.assertTrue(
             self.pingaccess in res.json()["health"].keys(),
             f"No {self.pingaccess} in health check results",
