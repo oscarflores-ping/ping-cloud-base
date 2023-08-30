@@ -21,7 +21,7 @@ spec:
           allowPrivilegeEscalation: false
         env:
           - name: OS_HOST
-            value: "opensearch-cluster-headless.elastic-stack-logging.svc.cluster.local"
+            value: "opensearch-cluster-master.elastic-stack-logging.svc.cluster.local"
           - name: OS_PORT
             value: "9200"
           - name: BOOTSTRAP_USER
@@ -34,6 +34,16 @@ spec:
               secretKeyRef:
                 key: password
                 name: os-bootstrap-creds
+          - name: TENANT_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: cluster-info
+                key: tenant_domain
+          - name: PRIMARY_TENANT_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: cluster-info
+                key: primary_tenant_domain
           - name: INDEX_TEMPLATES_PATH
             value: "/usr/share/opensearch/data/index-templates"
           - name: ALERTS_PATH

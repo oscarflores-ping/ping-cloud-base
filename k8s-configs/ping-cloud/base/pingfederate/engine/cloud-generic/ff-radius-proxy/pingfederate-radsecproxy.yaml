@@ -22,7 +22,7 @@ spec:
             runAsNonRoot: true
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
-          image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.12.1
+          image: public.ecr.aws/r2h3l6e4/pingcloud-services/toolkit:v1.15.0
           command: [ "/bin/sh", "-c" ]
           args: [ while ! kubectl get secret $(SECRET_NAME); do echo "Waiting for secret $(SECRET_NAME). CTRL-C to exit."; sleep 5; done ]
           env:
@@ -34,7 +34,7 @@ spec:
               value: "acme-tls-cert"
       containers:
         - name: pingcloud-radsecproxy
-          image: public.ecr.aws/r2h3l6e4/radiusproxy/grp:v1.0.0
+          image: public.ecr.aws/r2h3l6e4/pingcloud-services/grp-radiusproxy/dev:v1.19-release-branch-latest
           imagePullPolicy: IfNotPresent
           env:
             - name: NAMESPACE
