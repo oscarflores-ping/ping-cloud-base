@@ -1,7 +1,6 @@
 {
   "index_patterns": [
-    "pd-expensive-write-ops-*",
-    "pds-expensive-write-ops-*"
+    "pd-expensive-write-ops-*"
   ],
   "template": {
     "settings": {
@@ -41,6 +40,12 @@
               "ignore_above": 256
             }
           }
+        },
+        "etime": {
+          "type": "float"
+        },
+        "qtime": {
+          "type": "float"
         },
         "host": {
           "type": "text",

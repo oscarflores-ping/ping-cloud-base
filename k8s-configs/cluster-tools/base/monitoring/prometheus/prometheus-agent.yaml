@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: prometheus-agent
   namespace: prometheus
+  labels:
+    app: prometheus-agent
 spec:
   replicas: 1
   selector:
@@ -15,9 +17,13 @@ spec:
         app: prometheus-agent
     spec:
       serviceAccountName: prometheus
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
       containers:
       - name: prometheus
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/prom/prometheus:v2.42.0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/prom/prometheus:v2.47.0
         args:
           - "--config.file=/etc/prometheus/prometheus.yml"
           - "--web.enable-lifecycle"
