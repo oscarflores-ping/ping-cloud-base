@@ -16,7 +16,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: pingaccess-backup
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess/dev:v1.18-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess/dev:v2.0-release-branch-latest
         imagePullPolicy: Always
         securityContext:
           runAsGroup: 9999
@@ -34,11 +34,11 @@ spec:
         - name: LOG4J_FORMAT_MSG_NO_LOOKUPS
           value: "true"
         volumeMounts:
-        - name: pingaccess-backup
+        - name: pingcommon-backup
           mountPath: /opt/in/backup-archive-data.sh
           subPath: backup-archive-data.sh
       volumes:
-      - name: pingaccess-backup
+      - name: pingcommon-backup
         configMap:
-          name: pingaccess-backup
+          name: pingcommon-backup
           defaultMode: 0555

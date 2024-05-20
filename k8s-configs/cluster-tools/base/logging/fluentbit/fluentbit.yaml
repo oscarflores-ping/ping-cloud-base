@@ -1,15 +1,6 @@
 # create configmap for cluster name and aws region for CloudWatch Logs
 # need to replace the placeholders cluster_name and region_name
 apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: nr-license-key
-  annotations:
-    sealedsecrets.bitnami.com/managed: "true"
-
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cluster-info
@@ -19,6 +10,8 @@ data:
   log.level: "error"
   read.head: "True"
   read.tail: "Off"
+  tenant_domain: tenant_domain
+  primary_tenant_domain: tenant_domain
   newrelic_cluster_name: cluster_name
 ---
 apiVersion: v1
@@ -40,6 +33,8 @@ rules:
       - namespaces
       - pods
       - pods/logs
+      - nodes
+      - nodes/proxy
     verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -69,16 +64,18 @@ spec:
     metadata:
       labels:
         k8s-app: fluent-bit
+        pod-reaper: enabled
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/path: "/api/v1/metrics/prometheus"
+        prometheus.io/port: "2020"
+        newrelic.io/scrape: "true"
     spec:
       containers:
       - name: fluent-bit
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-for-fluent-bit:2.31.7
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/fluent/fluent-bit:2.2.2
         imagePullPolicy: Always
-        command:
-          - "/bin/sh"
-        args:
-          - "-c"
-          - "S3_BUCKET_NAME=${S3_BUCKET#s3://} /entrypoint.sh"
         securityContext:
           capabilities:
             drop:
@@ -86,16 +83,6 @@ spec:
             add:
               - CAP_FOWNER
         env:
-            - name: AWS_REGION
-              valueFrom:
-                configMapKeyRef:
-                  name: cluster-info
-                  key: logs.region
-            - name: CLUSTER_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: cluster-info
-                  key: cluster.name
             - name: READ_FROM_HEAD
               valueFrom:
                 configMapKeyRef:
@@ -115,16 +102,6 @@ spec:
                 configMapKeyRef:
                   name: cluster-info
                   key: log.level
-            - name: NR_LICENSE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: nr-license-key
-                  key: NEW_RELIC_LICENSE_KEY
-            - name: S3_BUCKET
-              valueFrom:
-                  configMapKeyRef:
-                    name: s3-raw-logs-bucket
-                    key: bucketName
             - name: NR_CLUSTER_NAME
               valueFrom:
                 configMapKeyRef:
@@ -168,7 +145,26 @@ spec:
           mountPath: /var/lib/docker/containers
           readOnly: true
         - name: fluent-bit-config
-          mountPath: /fluent-bit/etc/
+          mountPath: /fluent-bit/etc/fluent-bit.conf
+          subPath: fluent-bit.conf
+        - name: fluent-bit-parsers
+          mountPath: /fluent-bit/etc/parsers.conf
+          subPath: parsers.conf
+        - name: fluent-bit-pipeline-cw
+          mountPath: /fluent-bit/etc/pipelines_cw.conf
+          subPath: cw.conf
+        - name: fluent-bit-pipeline-elk
+          mountPath: /fluent-bit/etc/pipelines_elk.conf
+          subPath: elk.conf
+        - name: fluent-bit-pipeline-nr
+          mountPath: /fluent-bit/etc/pipelines_nr.conf
+          subPath: nr.conf
+        - name: fluent-bit-pipeline-s3
+          mountPath: /fluent-bit/etc/pipelines_s3.conf
+          subPath: s3.conf
+        - name: fluent-bit-pipeline-customer
+          mountPath: /fluent-bit/etc/pipelines_customer.conf
+          subPath: customer.conf
         - name: runlogjournal
           mountPath: /run/log/journal
           readOnly: true
@@ -176,6 +172,8 @@ spec:
           mountPath: /var/log/dmesg
           readOnly: true
       terminationGracePeriodSeconds: 10
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       volumes:
       - name: fluentbitstate
         hostPath:
@@ -190,6 +188,24 @@ spec:
       - name: fluent-bit-config
         configMap:
           name: fluent-bit-config
+      - name: fluent-bit-parsers
+        configMap:
+          name: fluent-bit-parsers
+      - name: fluent-bit-pipeline-cw
+        configMap:
+          name: fluent-bit-pipeline-cw
+      - name: fluent-bit-pipeline-elk
+        configMap:
+          name: fluent-bit-pipeline-elk
+      - name: fluent-bit-pipeline-nr
+        configMap:
+          name: fluent-bit-pipeline-nr
+      - name: fluent-bit-pipeline-s3
+        configMap:
+          name: fluent-bit-pipeline-s3
+      - name: fluent-bit-pipeline-customer
+        configMap:
+          name: fluent-bit-pipeline-customer
       - name: runlogjournal
         hostPath:
           path: /run/log/journal
@@ -197,7 +213,7 @@ spec:
         hostPath:
           path: /var/log/dmesg
       serviceAccountName: fluent-bit
-      priorityClassName: high-priority-apps-to-avoid-pending-state
+      priorityClassName: system-node-critical
       tolerations:
       - key: node-role.kubernetes.io/controlplane
         operator: Exists
@@ -206,16 +222,3 @@ spec:
         effect: "NoExecute"
       - operator: "Exists"
         effect: "NoSchedule"
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: fluent-bit
-  labels:
-    k8s-app: fluent-bit
-spec:
-  selector:
-    k8s-app: fluent-bit
-  ports:
-    - port: 2020
-      name: api
