@@ -5,6 +5,7 @@
 # every poll interval.
 
 # Developing this script? Check out https://confluence.pingidentity.com/x/2StOCw
+
 LOG_FILE=/tmp/git-ops-command.log
 
 ########################################################################################################################
@@ -118,51 +119,6 @@ enable_external_ingress() {
       rm -f "${kust_file}".bak
     done
   done
-}
-
-########################################################################################################################
-# Disable grafana operator CRDs if not argo environment.
-########################################################################################################################
-disable_grafana_crds() {
-  cd "${TMP_DIR}"
-  search_term="grafana-operator\/base"
-  for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
-      log "Commenting grafana ${kust_file}"
-      sed -i.bak \
-        -e "/${search_term}/ s|^#*|#|g" \
-        "${kust_file}"
-      rm -f "${kust_file}".bak
-    done
-}
-
-########################################################################################################################
-# Disable grafana operator CRDs if not argo environment.
-########################################################################################################################
-disable_os_operator_crds() {
-  cd "${TMP_DIR}"
-  search_term="opensearch-operator\/crd"
-  for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
-      log "Commenting opensearch operator ${kust_file}"
-      sed -i.bak \
-        -e "/${search_term}/ s|^#*|#|g" \
-        "${kust_file}"
-      rm -f "${kust_file}".bak
-    done
-}
-
-########################################################################################################################
-# Disable Prometheus operator CRDs if not argo environment.
-########################################################################################################################
-disable_prom_operator_crds() {
-  cd "${TMP_DIR}"
-  search_term="prometheus-operator\/base"
-  for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
-      log "Commenting prometheus operator ${kust_file}"
-      sed -i.bak \
-        -e "/${search_term}/ s|^#*|#|g" \
-        "${kust_file}"
-      rm -f "${kust_file}".bak
-    done
 }
 
 ########################################################################################################################
@@ -316,12 +272,6 @@ else
   build_load_arg_value='none'
 fi
 
-if ! command -v argocd &> /dev/null ; then
-  disable_grafana_crds
-  disable_os_operator_crds
-  disable_prom_operator_crds
-fi
-
 # Build the uber deploy yaml
 if [[ ${DEBUG} == "true" ]]; then
   log "DEBUG - generating uber yaml file from '${BUILD_DIR}' to /tmp/uber-debug.yaml"
@@ -334,7 +284,6 @@ elif test -z "${OUT_DIR}" || test ! -d "${OUT_DIR}"; then
   # Wait for the process ID of the Kustomize build to forward the corresponding return code to Argo CD.
   wait $kustomize_pid
   exit $?
-
 # TODO: leave this functionality for now - it outputs many yaml files to the OUT_DIR
 # it isn't clear if this is still used in actual CDEs
 else

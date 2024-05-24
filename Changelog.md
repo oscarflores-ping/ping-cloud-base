@@ -1,17 +1,12 @@
-# Changelog
+v1.18.2.0
 
-### 2.0.0
+# Ping Identity Products
 
-- Update version regexes from v*.*.*.* to v*.*.*
-- Update csd upload tests for products to support removal of ad-hoc PD jobs
+**_[Deploys With]_**
 
-_Changes:_
-
-- [X] PDO-5729 Update version regexes
-- [X] PDO-5888 Implement p1as-pingdirectory pipeline deploy stage
-
-### 1.19.1.0
-
-_Changes:_
-
-- [X] PDO-7238 Remove KMS Init Container from PingDirectory
+- PingAccess to v7.0.7
+- PingCentral to v1.10.1
+- PingDataSync to v9.2.0.0
+- PingDelegator to v4.10.0
+- PingDirectory to v9.2.0.4
+- PingFederate to v11.3.6

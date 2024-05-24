@@ -36,10 +36,6 @@ testWebSession() {
 }
 
 testPaSite() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_site "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "10")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -48,10 +44,6 @@ testPaSite() {
 }
 
 testPfSite() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_site "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "20")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -59,12 +51,12 @@ testPfSite() {
   assertEquals "Name value was ${name}" 'PingFederate Admin Console' "$(strip_double_quotes "${name}")"
 }
 
-testOSDSite() {
+testKibanaSite() {
   response=$(get_site "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "21")
   assertEquals "Response value was ${response}" 0 $?
 
   name=$(parse_value_from_response "${response}" 'name')
-  assertEquals "Name value was ${name}" 'OpenSearch Dashboards' "$(strip_double_quotes "${name}")"
+  assertEquals "Name value was ${name}" 'Kibana' "$(strip_double_quotes "${name}")"
 }
 
 testGrafanaSite() {
@@ -92,10 +84,6 @@ testArgocdSite() {
 }
 
 testPaVirtualHost() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_virtual_host "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "10")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -110,10 +98,6 @@ testPaVirtualHost() {
 }
 
 testPfVirtualHost() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_virtual_host "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "20")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -127,7 +111,7 @@ testPfVirtualHost() {
   fi
 }
 
-testOSDVirtualHost() {
+testKibanaVirtualHost() {
   response=$(get_virtual_host "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "21")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -137,7 +121,7 @@ testOSDVirtualHost() {
   if [[ ${stripped_host} =~ ^logs.* ]]; then
     assertContains "${stripped_host}" 'logs'
   else
-    fail 'The OpenSearch Dashboards virtual host should have a host value starting with logs'
+    fail 'The Kibana virtual host should have a host value starting with logs'
   fi
 }
 
@@ -184,10 +168,6 @@ testArgocdVirtualHost() {
 }
 
 testPaApplication() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "10")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -196,10 +176,6 @@ testPaApplication() {
 }
 
 testPfApplication() {
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
   response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "20")
   assertEquals "Response value was ${response}" 0 $?
 
@@ -207,12 +183,12 @@ testPfApplication() {
   assertEquals "Name value was ${name}" 'PingFederate App' "$(strip_double_quotes "${name}")"
 }
 
-testOSDApplication() {
+testKibanaApplication() {
   response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "21")
   assertEquals "Response value was ${response}" 0 $?
 
   name=$(parse_value_from_response "${response}" 'name')
-  assertEquals "Name value was ${name}" 'OpenSearch Dashboards App' "$(strip_double_quotes "${name}")"
+  assertEquals "Name value was ${name}" 'Kibana App' "$(strip_double_quotes "${name}")"
 }
 
 testGrafanaApplication() {
@@ -251,7 +227,7 @@ testPaWasIdempotent() {
   export APP_ID=123
   export APP_NAME="TestApp"
   export VIRTUAL_HOST_ID=1
-  export SITE_ID=100 # SiteID correlating to ArgoCD.  This will test will create a new application referencing the ArgoCD site.
+  export SITE_ID=20
 
   # Cleanup from possible previous run failures
   log "Deleting app: ${APP_NAME} if it exists"
@@ -265,12 +241,10 @@ testPaWasIdempotent() {
   response=$(create_site_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}")
   assertEquals "Response value was ${response}" 0 $?
 
-  if [ "${ENV_TYPE}" != "customer-hub" ]; then
-    log "Deleting PingAccess App"
-    pa_app_id=10
-    response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${pa_app_id}")
-    assertEquals "Response value was ${response}" 0 $?
-  fi
+  log "Deleting PingAccess App"
+  pa_app_id=10
+  response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${pa_app_id}")
+  assertEquals "Response value was ${response}" 0 $?
 
   log "Backing up PA-WAS"
   kubectl apply -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
@@ -288,11 +262,9 @@ testPaWasIdempotent() {
   kubectl wait --for=condition=ready --timeout=300s pod -l role=pingaccess-was-admin -n "${PING_CLOUD_NAMESPACE}"
   sleep 3
 
-  if [ "${ENV_TYPE}" != "customer-hub" ]; then
-    log "Verifying the PingAccess App recreated on restart"
-    response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${pa_app_id}")
-    assertEquals "The PingAccess App not present after restart: ${response}"  0 $?
-  fi
+  log "Verifying the PingAccess App recreated on restart"
+  response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${pa_app_id}")
+  assertEquals "The PingAccess App not present after restart: ${response}"  0 $?
 
   APP_ID=123 # Unset elsewhere
   log "Verifying the new App: ${APP_NAME} still present"

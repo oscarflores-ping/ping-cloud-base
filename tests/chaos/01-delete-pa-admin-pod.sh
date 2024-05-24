@@ -12,11 +12,6 @@ fi
 
 testDeletePaAdmin() {
 
-  if [ "${ENV_TYPE}" == "customer-hub" ]; then
-    log "Customer-hub deployment, skipping test"
-    return 0
-  fi
-
   PA_ADMIN_PASSWORD=${PA_ADMIN_PASSWORD:-2FederateM0re}
 
   kubectl delete pod pingaccess-admin-0 -n "${PING_CLOUD_NAMESPACE}"

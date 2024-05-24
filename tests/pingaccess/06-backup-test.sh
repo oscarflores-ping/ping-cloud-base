@@ -2,7 +2,6 @@
 
 CI_SCRIPTS_DIR="${SHARED_CI_SCRIPTS_DIR:-/ci-scripts}"
 . "${CI_SCRIPTS_DIR}"/common.sh "${1}"
-. "${CI_SCRIPTS_DIR}"/test/test_utils.sh
 
 if skipTest "${0}"; then
   log "Skipping test ${0}"
@@ -18,12 +17,12 @@ get_expected_files() {
 }
 
 get_actual_files() {
-  local bucket_url=$(get_ssm_val "${BACKUP_URL#ssm:/}")
-  local bucket_url_no_protocol=${bucket_url#s3://}
+  BUCKET_URL_NO_PROTOCOL=${BACKUP_URL#s3://}
+  BUCKET_NAME=$(echo "${BUCKET_URL_NO_PROTOCOL}" | cut -d/ -f1)
   DAYS_AGO=1
 
   aws s3api list-objects \
-    --bucket "${bucket_url_no_protocol}" \
+    --bucket "${BUCKET_NAME}" \
     --prefix 'pingaccess/' \
     --query "reverse(sort_by(Contents[?LastModified>='${DAYS_AGO}'], &LastModified))[].Key" \
     --profile "${AWS_PROFILE}" |
@@ -32,23 +31,12 @@ get_actual_files() {
   sort
 }
 
-oneTimeSetUp(){
-  # Save off backup file in case test does not complete and leaves it with 1 or more 'exit 1' statements inserted into it
-  kubectl exec pingaccess-admin-0 -c pingaccess-admin -n ping-cloud -- sh -c 'cp /opt/staging/hooks/90-upload-backup-s3.sh /tmp/90-upload-backup-s3.sh'
-}
-
-oneTimeTearDown(){
-  # Revert the original file back when tests are done execting
-  kubectl exec pingaccess-admin-0 -c pingaccess-admin -n ping-cloud -- sh -c 'cp /tmp/90-upload-backup-s3.sh /opt/staging/hooks/90-upload-backup-s3.sh'
-}
-
 testPingAccessBackup() {
   UPLOAD_JOB="${PROJECT_DIR}"/k8s-configs/ping-cloud/base/pingaccess/admin/aws/backup.yaml
 
-  log "Deleting backup job"
+  log "Applying backup job"
   kubectl delete -f "${UPLOAD_JOB}" -n "${PING_CLOUD_NAMESPACE}"
 
-  log "Applying backup job"
   kubectl apply -f "${UPLOAD_JOB}" -n "${PING_CLOUD_NAMESPACE}"
   assertEquals "The kubectl apply command to create the PingAccess upload job should have succeeded" 0 $?
 
@@ -67,11 +55,6 @@ testPingAccessBackup() {
   echo "${actual_results}"
 
   assertContains "The expected_files were not contained within the actual_files" "${actual_results}" "${expected_results}"
-}
-
-testPingAccessBackupCapturesFailure() {
-  init_backup_job_failure "pingaccess-admin" "${PROJECT_DIR}"/k8s-configs/ping-cloud/base/pingaccess/admin/aws/backup.yaml 
-  assertEquals "Backup job should not have succeeded" 1 $?
 }
 
 # When arguments are passed to a script you must

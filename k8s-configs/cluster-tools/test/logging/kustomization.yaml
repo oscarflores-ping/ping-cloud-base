@@ -7,6 +7,6 @@ resources:
 - ../../base/logging/
 
 patchesStrategicMerge:
-- elastic-stack/opensearch/os-limits.yaml
-- elastic-stack/logstash/hpa-limits.yaml
-- elastic-stack/logstash/logstash-limits.yaml
+  - elastic-stack/logstash/logstash-limits.yaml
+  - elastic-stack/logstash/hpa-limits.yaml
+  - elastic-stack/elasticsearch/es-limits.yaml

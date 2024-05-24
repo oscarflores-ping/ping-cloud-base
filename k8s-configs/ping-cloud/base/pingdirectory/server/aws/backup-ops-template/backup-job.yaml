@@ -9,10 +9,10 @@ metadata:
     role: pingdirectory
 spec:
   ttlSecondsAfterFinished: 30
-  backoffLimit: 0
+  backoffLimit: 5
   template:
     spec:
-      serviceAccountName: pingdirectory-ops-serviceaccount
+      serviceAccountName: ping-serviceaccount
       priorityClassName: high-priority-apps-to-avoid-pending-state
       affinity:
         # This podAffinity rule is designed to deploy Backup/restore job to the same AZ as its targeted PingDirectory server
@@ -33,7 +33,7 @@ spec:
       restartPolicy: Never
       initContainers:
       - name: pingdirectory-discovery-service
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.15.36
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.0.17
         imagePullPolicy: IfNotPresent
         command:
         - /get_ssm_env_vars.sh
@@ -83,7 +83,7 @@ spec:
           subPath: logger.lib.sh
       containers:
       - name: pingdirectory-backup
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.18-release-branch-latest
         imagePullPolicy: Always
         securityContext:
           runAsGroup: 9999

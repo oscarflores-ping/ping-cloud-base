@@ -5,8 +5,6 @@ metadata:
   name: pingdirectory-restore
   labels:
     class: pingdirectory-server
-  annotations:
-    volume.autoscaler.kubernetes.io/ignore: "true"
 spec:
   accessModes:
     - ReadWriteOnce

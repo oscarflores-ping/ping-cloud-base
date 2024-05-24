@@ -8,7 +8,6 @@ commonLabels:
 
 resources:
 - ../cloud-generic
-- pingcloud-p14c-bootstrap
 
 generatorOptions:
   disableNameSuffixHash: true

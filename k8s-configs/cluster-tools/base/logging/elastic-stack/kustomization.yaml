@@ -5,11 +5,10 @@ namespace: elastic-stack-logging
 
 resources:
 - enrichment
-- logstash
 - namespace.yaml
-- opensearch-operator/crd
-- opensearch-operator
-- opensearch
+- kibana
+- logstash
+- elasticsearch
 
 configMapGenerator:
 - name: elk-environment-variables

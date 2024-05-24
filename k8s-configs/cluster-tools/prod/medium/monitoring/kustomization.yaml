@@ -5,4 +5,5 @@ resources:
 - ../../../base/monitoring/
 
 patchesStrategicMerge:
+- prometheus/grafana-limits.yaml
 - prometheus/prometheus-limits.yaml

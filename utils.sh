@@ -123,6 +123,27 @@ parse_url() {
 }
 
 ########################################################################################################################
+# Format the provided kustomize version for numeric comparison. For example, if the kustomize version is 4.0.5, it
+# returns 004000005000.
+#
+# Arguments
+#   ${1} -> The kustomize short version, e.g. v4.0.5.
+########################################################################################################################
+format_version() {
+  version="$1"
+  printf "%03d%03d%03d%03d" $(echo "${version}" | tr '.' ' ')
+}
+
+########################################################################################################################
+# Returns the version of kustomize formatted for numeric comparison. For example, if the kustomize version is 4.0.5,
+# it returns 004000005000.
+########################################################################################################################
+kustomize_version() {
+  version="$(kustomize version --short | grep -oE '[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+')"
+  format_version "${version}"
+}
+
+########################################################################################################################
 # Substitute variables in all files in the provided directory.
 #
 # Arguments
@@ -139,8 +160,7 @@ ${ENVIRONMENT}
 ${BELUGA_ENV_NAME}
 ${IS_MULTI_CLUSTER}
 ${PLATFORM_EVENT_QUEUE_NAME}
-${CUSTOMER_SSM_PATH_PREFIX}
-${CUSTOMER_SSO_SSM_PATH_PREFIX}
+${ORCH_API_SSM_PATH_PREFIX}
 ${SERVICE_SSM_PATH_PREFIX}
 ${REGION}
 ${REGION_NICK_NAME}
@@ -164,6 +184,8 @@ ${PA_MIN_HEAP}
 ${PA_MAX_HEAP}
 ${PA_MIN_YGEN}
 ${PA_MAX_YGEN}
+${CONFIG_REPO_BRANCH}
+${CONFIG_PARENT_DIR}
 ${TOPOLOGY_DESCRIPTOR}
 ${ARTIFACT_REPO_URL}
 ${PING_ARTIFACT_REPO_URL}
@@ -187,8 +209,7 @@ ${HEALTHCHECKS_ENABLED}
 ${DASH_REPO_URL}
 ${DASH_REPO_BRANCH}
 ${APP_RESYNC_SECONDS}
-${CERT_RENEW_BEFORE}
-${DEFAULT_CLUSTER_UPTIME}'
+${OPSGENIE_API_KEY_BASE64}'
 
 substitute_vars() {
   local subst_dir="$1"

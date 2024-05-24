@@ -1,12 +1,17 @@
-apiVersion: monitoring.coreos.com/v1
-kind: Prometheus
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: prometheus
+  namespace: prometheus
 spec:
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 6000Mi
-    requests:
-      cpu: 1000m
-      memory: 2000Mi
+  template:
+    spec:
+      containers:
+        - name: prometheus
+          resources:
+            limits:
+              cpu: “1500m”
+              memory: "4000Mi"
+            requests:
+              cpu: “1000m”
+              memory: "2000Mi"
