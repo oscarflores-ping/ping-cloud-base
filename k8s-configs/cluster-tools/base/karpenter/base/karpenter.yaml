@@ -360,7 +360,7 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: true
-          image: public.ecr.aws/karpenter/controller:0.37.0@sha256:157f478f5db1fe999f5e2d27badcc742bf51cc470508b3cebe78224d0947674f
+          image: public.ecr.aws/karpenter/controller:0.37.0
           imagePullPolicy: IfNotPresent
           env:
             - name: KUBERNETES_MIN_VERSION
