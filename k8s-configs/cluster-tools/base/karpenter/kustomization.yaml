@@ -9,11 +9,11 @@ resources:
 commonAnnotations:
   argocd.argoproj.io/sync-wave: "-5"
 
-#Point to the ping-cluster-tools repo equivalents pushed to ECR
+# Point to the ping-cluster-tools repo equivalents pushed to ECR
 images:
   - name: public.ecr.aws/karpenter/controller
     newName: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/karpenter/controller
-    newTag: "0.37.0"
+    newTag: 0.37.0
 
 patchesStrategicMerge:
 - prometheus-metrics.yaml
