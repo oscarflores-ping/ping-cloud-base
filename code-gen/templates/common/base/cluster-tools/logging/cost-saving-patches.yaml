@@ -12,6 +12,15 @@ $patch: delete
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: os-controller-manager
+  namespace: elastic-stack-logging
+$patch: delete
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: nginx-ingress-controller
   namespace: ingress-nginx-public
 spec:
