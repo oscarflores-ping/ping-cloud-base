@@ -1,54 +1,9 @@
 ---
 # Cost saving changes happening here
-kind: Deployment
-apiVersion: apps/v1
+apiVersion: opensearch.opster.io/v1
+kind: OpenSearchCluster
 metadata:
-  name: opensearch-cluster-dashboards
-  namespace: elastic-stack-logging
-$patch: delete
-
----
-
-kind: Deployment
-apiVersion: apps/v1
-metadata:
-  name: os-controller-manager
-  namespace: elastic-stack-logging
-$patch: delete
-
----
-
-kind: StatefulSet
-apiVersion: apps/v1
-metadata:
-  name: opensearch-cluster-hot
-  namespace: elastic-stack-logging
-$patch: delete
-
----
-
-kind: StatefulSet
-apiVersion: apps/v1
-metadata:
-  name: opensearch-cluster-warm
-  namespace: elastic-stack-logging
-$patch: delete
-
----
-
-kind: Job
-apiVersion: batch/v1
-metadata:
-  name: opensearch-bootstrap
-  namespace: elastic-stack-logging
-$patch: delete
-
---- 
-
-kind: Job
-apiVersion: batch/v1
-metadata:
-  name: opensearch-cluster-securityconfig-update
+  name: opensearch-cluster
   namespace: elastic-stack-logging
 $patch: delete
 
