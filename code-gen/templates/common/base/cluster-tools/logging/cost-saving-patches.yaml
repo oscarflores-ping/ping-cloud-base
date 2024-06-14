@@ -67,3 +67,21 @@ spec:
       initContainers:
       - name: wait-for-bootstrap-completed
         $patch: delete
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipelines
+  namespace: elastic-stack-logging
+data:
+  pipelines.yml: |
+    - pipeline.id: customer
+      path.config: "/usr/share/logstash/pipeline/customer"
+    - pipeline.id: s3
+      path.config: "/usr/share/logstash/pipeline/s3"
+    - pipeline.id: cloudwatch
+      path.config: "/usr/share/logstash/pipeline/cloudwatch"
+    - pipeline.id: newrelic
+      path.config: "/usr/share/logstash/pipeline/newrelic"
