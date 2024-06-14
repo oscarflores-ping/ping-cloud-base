@@ -53,3 +53,17 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: pingaccess-was
   namespace: ping-cloud
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logstash-elastic
+  namespace: elastic-stack-logging
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-bootstrap-completed
+        $patch: delete
