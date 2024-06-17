@@ -107,3 +107,12 @@ spec:
         startupProbe:
           httpGet:
             port: 8081
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: opensearch-bootstrap
+  namespace: elastic-stack-logging
+$patch: delete
