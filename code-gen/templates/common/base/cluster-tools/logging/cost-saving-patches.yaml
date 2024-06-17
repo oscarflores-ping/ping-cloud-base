@@ -85,3 +85,25 @@ data:
       path.config: "/usr/share/logstash/pipeline/cloudwatch"
     - pipeline.id: newrelic
       path.config: "/usr/share/logstash/pipeline/newrelic"
+
+---
+
+# original port is 8080
+# that port is turned off as the main pipeline forwards logs to opensearch
+# 8081 is used by the s3 bucket pipeline
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: logstash-elastic
+  namespace: elastic-stack-logging
+spec:
+  template:
+    spec:
+      containers:
+      - name: logstash
+        readinessProbe:
+          httpGet:
+            port: 8081
+        livenessProbe:
+          httpGet:
+            port: 8081
