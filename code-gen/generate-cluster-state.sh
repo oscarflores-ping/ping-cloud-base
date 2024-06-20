@@ -1415,7 +1415,11 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     
     if test "${TENANT_DOMAIN}" = "${PRIMARY_TENANT_DOMAIN}"; then
       echo "Primary CHUB identified, disabling opensearch engines."
-      sed -i.bak '/disable-opensearch-primary-region-patch.yaml/s/^# *//' "${PRIMARY_PING_KUST_FILE}"
+      echo "${PRIMARY_PING_KUST_FILE}"
+
+      sed -i.bak 's/^\(.*disable-opensearch-primary-region-patch.yaml\)$/# \1/g' "${PRIMARY_PING_KUST_FILE}"
+
+      cat "${PRIMARY_PING_KUST_FILE}"
       rm -f "${PRIMARY_PING_KUST_FILE}.bak"
     fi
 
