@@ -1,5 +1,5 @@
 ---
-# Cost saving changes happening here
+
 apiVersion: opensearch.opster.io/v1
 kind: OpenSearchCluster
 metadata:
