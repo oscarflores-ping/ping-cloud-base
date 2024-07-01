@@ -7,9 +7,6 @@ metadata:
   name: "ping-cloud-all-cdes"
   namespace: argocd
 spec:
-  ignoreApplicationDifferences:
-    - jsonPointers:
-        - /spec/syncPolicy
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:
@@ -56,9 +53,6 @@ metadata:
   name: "ping-cloud-all-cdes-per-app"
   namespace: argocd
 spec:
-  ignoreApplicationDifferences:
-    - jsonPointers:
-        - /spec/syncPolicy
   syncPolicy:
     preserveResourcesOnDeletion: true
   generators:

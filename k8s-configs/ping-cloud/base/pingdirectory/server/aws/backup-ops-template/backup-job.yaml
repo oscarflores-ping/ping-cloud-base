@@ -33,7 +33,7 @@ spec:
       restartPolicy: Never
       initContainers:
       - name: pingdirectory-discovery-service
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.15.36
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.0.22
         imagePullPolicy: IfNotPresent
         command:
         - /get_ssm_env_vars.sh
@@ -83,7 +83,7 @@ spec:
           subPath: logger.lib.sh
       containers:
       - name: pingdirectory-backup
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.19-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory:v1.19.0.0
         imagePullPolicy: Always
         securityContext:
           runAsGroup: 9999
