@@ -72,7 +72,7 @@
 # ACCOUNT_BASE_PATH                | The account's SSM base path                        | The SSM path: /pcpt/config/k8s-config/accounts/
 #                                  |                                                    |
 # ACCOUNT_TYPE                     | The variable denotes the type of account based on  | No defaults
-#                                  | the IS_GA flag: either 'ga' or 'non-ga'.           |                               
+#                                  | the IS_GA flag: either 'ga' or 'non-ga'.           |
 #                                  |                                                    |
 # ARGOCD_SLACK_TOKEN_SSM_PATH      | SSM path to secret token for ArgoCD slack          | The SSM path:
 #                                  | notifications                                      | ssm://pcpt/argocd/notification/slack/access_token
@@ -247,8 +247,8 @@
 #                                  | state data required for the cluster.               |
 #                                  |                                                    |
 # SLACK_CHANNEL                    | The Slack channel name for ArgoCD-Status Slack     | CDE environment: p1as-application-oncall                                  |                                                    |
-#                                  | notifications.                                     |             
-#                                  |                                                    |                                                                                  
+#                                  | notifications.                                     |
+#                                  |                                                    |
 # NON_GA_SLACK_CHANNEL             | The Slack channel name for ArgoCD-Status Slack     | CDE environment: nowhere
 #                                  | notifications.                                     | Dev environment: nowhere
 #                                  | Overrides SLACK_CHANNEL                            |
@@ -295,6 +295,7 @@
 #                                  | name and must have the correct case (e.g. ci-cd    | for tenant domain "ci-cd.ping-oasis.com"
 #                                  | vs. CI-CD).                                        |
 #                                  |                                                    |
+# THANOS_S3_BUCKET_NAME            | Name of the thanos bucket                          | Empty string
 #                                  |                                                    |
 # UPGRADE                          | Indicates generate-cluster-state.sh is running as  | The string "false"
 #                                  | an upgrade not an initial generation               |
@@ -430,12 +431,14 @@ ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}
 ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}
 ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}
 ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}
+${IRSA_THANOS_ANNOTATION_KEY_VALUE}
 ${KARPENTER_ROLE_ANNOTATION_KEY_VALUE}
 ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}
 ${PF_PROVISIONING_ENABLED}
 ${RADIUS_PROXY_ENABLED}
 ${EXTERNAL_INGRESS_ENABLED}
 ${HEALTHCHECKS_ENABLED}
+${CUSTOMER_PINGONE_ENABLED}
 ${ARGOCD_BOOTSTRAP_ENABLED}
 ${ARGOCD_CDE_ROLE_SSM_TEMPLATE}
 ${ARGOCD_CDE_URL_SSM_TEMPLATE}
@@ -445,7 +448,8 @@ ${SLACK_CHANNEL}
 ${DASH_REPO_URL}
 ${DASH_REPO_BRANCH}
 ${APP_RESYNC_SECONDS}
-${CERT_RENEW_BEFORE}'
+${CERT_RENEW_BEFORE}
+${THANOS_S3_BUCKET_NAME}'
 
 # Variables to replace within the generated cluster state code
 REPO_VARS="${REPO_VARS:-${DEFAULT_VARS}}"
@@ -702,6 +706,8 @@ echo "Initial EXTERNAL_INGRESS_ENABLED: ${EXTERNAL_INGRESS_ENABLED}"
 
 echo "Initial HEALTHCHECKS_ENABLED: ${HEALTHCHECKS_ENABLED}"
 
+echo "Initial CUSTOMER_PINGONE_ENABLED: ${CUSTOMER_PINGONE_ENABLED}"
+
 echo "Initial ARGOCD_BOOTSTRAP_ENABLED: ${ARGOCD_BOOTSTRAP_ENABLED}"
 echo "Initial ARGOCD_CDE_ROLE_SSM_TEMPLATE: ${ARGOCD_CDE_ROLE_SSM_TEMPLATE}"
 echo "Initial ARGOCD_CDE_URL_SSM_TEMPLATE: ${ARGOCD_CDE_URL_SSM_TEMPLATE}"
@@ -721,6 +727,7 @@ echo "Initial IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VAL
 echo "Initial IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
+echo "Initial IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -826,6 +833,7 @@ export ACCOUNT_BASE_PATH=${ACCOUNT_BASE_PATH:-ssm://pcpt/config/k8s-config/accou
 export ACCOUNT_PATH_PREFIX=${ACCOUNT_BASE_PATH#ssm:/}
 export IRSA_BASE_PATH=${IRSA_BASE_PATH:-ssm://pcpt/irsa-role/}
 export PGO_BUCKET_URI_SUFFIX=${PGO_BUCKET_URI_SUFFIX:-/pgo-bucket/uri}
+export THANOS_BUCKET_URI_SUFFIX=${THANOS_BUCKET_URI_SUFFIX:-/service/storage/thanos/uri}
 
 # IRSA for ping product pods. The role name is predefined as a part of the interface contract.
 export IRSA_PING_ANNOTATION_KEY_VALUE=${IRSA_PING_ANNOTATION_KEY_VALUE:-''}
@@ -836,6 +844,7 @@ export IRSA_ARGOCD_ANNOTATION_KEY_VALUE=${IRSA_ARGOCD_ANNOTATION_KEY_VALUE:-''}
 export IRSA_CWAGENT_ANNOTATION_KEY_VALUE=${IRSA_CWAGENT_ANNOTATION_KEY_VALUE:-''}
 export IRSA_LOGSTASH_ANNOTATION_KEY_VALUE=${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE:-''}
 export IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE=${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE:-''}
+export IRSA_THANOS_ANNOTATION_KEY_VALUE=${IRSA_THANOS_ANNOTATION_KEY_VALUE:-''}
 export IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE=${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE:-''}
 export IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE=${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE:-''}
 export IRSA_INGRESS_ANNOTATION_KEY_VALUE=${IRSA_INGRESS_ANNOTATION_KEY_VALUE:-''}
@@ -855,6 +864,7 @@ export RADIUS_PROXY_ENABLED="${RADIUS_PROXY_ENABLED:-false}"
 export ARGOCD_BOOTSTRAP_ENABLED="${ARGOCD_BOOTSTRAP_ENABLED:-true}"
 export EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED:-""}"
 export HEALTHCHECKS_ENABLED="${HEALTHCHECKS_ENABLED:-false}"
+export CUSTOMER_PINGONE_ENABLED="${CUSTOMER_PINGONE_ENABLED:-false}"
 
 ### Default environment variables ###
 export ECR_REGISTRY_NAME='public.ecr.aws/r2h3l6e4'
@@ -1002,6 +1012,7 @@ echo "Using RADIUS_PROXY_ENABLED: ${RADIUS_PROXY_ENABLED}"
 echo "Using ARGOCD_BOOTSTRAP_ENABLED: ${ARGOCD_BOOTSTRAP_ENABLED}"
 echo "Using EXTERNAL_INGRESS_ENABLED: ${EXTERNAL_INGRESS_ENABLED}"
 echo "Using HEALTHCHECKS_ENABLED: ${HEALTHCHECKS_ENABLED}"
+echo "Using CUSTOMER_PINGONE_ENABLED: ${CUSTOMER_PINGONE_ENABLED}"
 echo "Using TARGET_DIR: ${TARGET_DIR}"
 echo "Using IS_BELUGA_ENV: ${IS_BELUGA_ENV}"
 
@@ -1019,6 +1030,7 @@ echo "Using IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VALUE
 echo "Using IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
+echo "Using IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -1083,6 +1095,9 @@ cp ../.gitignore "${CLUSTER_STATE_REPO_DIR}"
 cp ../.gitignore "${PROFILE_REPO_DIR}"
 
 echo "${PING_CLOUD_BASE_COMMIT_SHA}" > "${TARGET_DIR}/pcb-commit-sha.txt"
+
+set_var "THANOS_S3_BUCKET_NAME" "" "${ACCOUNT_BASE_PATH}customer-hub" "${THANOS_BUCKET_URI_SUFFIX}"
+export THANOS_S3_BUCKET_NAME="${THANOS_S3_BUCKET_NAME#s3://}"
 
 # The SUPPORTED_ENVIRONMENT_TYPES variable can either be the CDE names (e.g. dev, test, stage, prod) or the CHUB name "customer-hub",
 # or the corresponding branch names (e.g. v1.8.0-dev, v1.8.0-test, v1.8.0-stage, v1.8.0-master, v1.8.0-customer-hub).
@@ -1215,6 +1230,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "IRSA_CWAGENT_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cloudwatch-agent/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_LOGSTASH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/logstash/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/opensearch/arn" "${IRSA_TEMPLATE}"
+  set_var "IRSA_THANOS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/thanos/arn" "${IRSA_TEMPLATE}"
   # ArgoCD only for customer-hub
   set_var "IRSA_ARGOCD_ANNOTATION_KEY_VALUE" "" "${IRSA_BASE_PATH}" "irsa-argocd/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_INGRESS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/ingress-controller/arn" "${IRSA_TEMPLATE}"
@@ -1234,6 +1250,8 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "PGO_BACKUP_BUCKET_NAME" "not_set" "${ACCOUNT_BASE_PATH}${ENV}" "${PGO_BUCKET_URI_SUFFIX}"
   # Remove s3:// prefix if present
   export PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME#s3://}
+
+
 
   ######################################################################################################################
   # Print out the final value being used for each environment specific variable.
@@ -1353,6 +1371,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     # Append patch to merge base and region env vars for ArgoCD in region kustomization.yaml
     export CHUB_REGION_KUST_FILE="${CHUB_TEMPLATES_DIR}/region/kustomization.yaml"
     yq eval -i '.configMapGenerator += (load(strenv(CHUB_REGION_KUST_FILE)).configMapGenerator[] | select(.name == "argocd-bootstrap"))' "${PRIMARY_PING_KUST_FILE}"
+    yq eval -i '.configMapGenerator += (load(strenv(CHUB_REGION_KUST_FILE)).configMapGenerator[] | select(.name == "p14c-environment-variables"))' "${PRIMARY_PING_KUST_FILE}"
 
     # Keep ArgoCD in pingaccess-was-ingress by replacing the delete patches
     # shellcheck disable=SC2016
@@ -1406,6 +1425,13 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     echo "CHUB deploy identified, retaining only PingCentral and PingAccess profiles"
     # Retain only the pingcentral & pingaccess profiles
     find "${ENV_PROFILES_DIR}" -type d -mindepth 1 -maxdepth 1 -not -name "${PING_CENTRAL}" -not -name "${PING_ACCESS}" -exec rm -rf {} +
+
+    if test "${TENANT_DOMAIN}" = "${PRIMARY_TENANT_DOMAIN}"; then
+      echo "Primary CHUB identified, disabling opensearch cluster."
+      sed -i.bak '/disable-opensearch-primary-region-patch.yaml/s/#//' "${PRIMARY_PING_KUST_FILE}"
+      rm -f "${PRIMARY_PING_KUST_FILE}.bak"
+    fi
+
   elif test "${ENV}" = "dev" && "${IS_BELUGA_ENV}" &&  test "${CI_SERVER}" = "yes"; then
     echo "Running a dev cluster in CI/CD pipeline, not removing PingCentral profiles"
   else

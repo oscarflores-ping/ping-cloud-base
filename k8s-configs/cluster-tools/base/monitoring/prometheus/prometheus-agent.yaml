@@ -2,7 +2,11 @@ apiVersion: monitoring.coreos.com/v1alpha1
 kind: PrometheusAgent
 metadata:
   name: prometheus-agent
+  namespace: prometheus
+  labels:
+    app: prometheus-agent
 spec:
+  replicas: 2
   containers:
     - name: prometheus
       envFrom:
@@ -12,6 +16,7 @@ spec:
   scrapeTimeout: 5s
   externalLabels:
     k8s_cluster_name: ${CLUSTER_NAME}-${TENANT_NAME}-${REGION_NICK_NAME}
+    replica_cluster_name: ${CLUSTER_NAME}-${TENANT_NAME}-${REGION_NICK_NAME}
   scrapeConfigSelector:
     matchLabels:
       prometheus: system-monitoring-prometheus
@@ -23,7 +28,7 @@ spec:
     matchLabels:
       prometheus: agent
   remoteWrite:
-    - url: 'http://prometheus:9090/api/v1/write'
+    - url: 'http://thanos-receive-headless:19291/api/v1/receive'
   enableFeatures:
     - agent
     - expand-external-labels
