@@ -1224,7 +1224,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "IRSA_CWAGENT_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cloudwatch-agent/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_LOGSTASH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/logstash/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/opensearch/arn" "${IRSA_TEMPLATE}"
-  set_var "IRSA_CLUSTER_AUTOSCALER_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cluster-autoscaler/arn" "${IRSA_TEMPLATE}"
+  set_var "IRSA_CLUSTER_AUTOSCALER_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cluster-autoscaler/arn" "${IRSA_TEMPLATE}"
 
   # ArgoCD only for customer-hub
   set_var "IRSA_ARGOCD_ANNOTATION_KEY_VALUE" "" "${IRSA_BASE_PATH}" "irsa-argocd/arn" "${IRSA_TEMPLATE}"
