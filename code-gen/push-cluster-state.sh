@@ -27,11 +27,15 @@
 #   PUSH_TO_SERVER -> A flag indicating whether or not to push the code to the remote server. Defaults to true.
 #   DISABLE_GIT -> Don't interact with git, only change the file structure locally - best used for testing
 #       git-ops-command.sh rendering of files as if in a CSR
+#   APPS_TO_PUSH -> An optional space-separated list of apps to push. Defaults to everything, if unset
+#       If provided, it must match the app directories that are created at the root of the cluster state repo,
+#       i.e. 'k8s-configs p1as-beluga-tools'
 
 # Global variables
 CLUSTER_STATE_REPO_DIR='cluster-state'
 K8S_CONFIGS_DIR='k8s-configs'
 BASE_DIR='base'
+ALL_APPS='all'
 
 PROFILE_REPO_DIR='profile-repo'
 PROFILES_DIR='profiles'
@@ -88,6 +92,32 @@ push_with_retries() {
 }
 
 ########################################################################################################################
+# Returns a flag indicating whether this is for all apps or not
+# Returns 0 if true, 1 if false
+########################################################################################################################
+is_all_apps() {
+  test "${APPS_TO_PUSH}" = "${ALL_APPS}"
+}
+
+########################################################################################################################
+# We need some way to identify that we are indeed within a cluster-state-repo or profile-repo before making irreversible
+# changes. Therefore, check that either a 'profiles', 'values-files', or 'k8s-configs' (for monorepo backwards
+# compatibility) directory exists, or that the directory is empty (besides hidden/dotfiles) in the case of a brand-new
+# CSR/PR empty cloned repo
+########################################################################################################################
+dir_sanity_check() {
+  echo "Checking if in a CSR or PR..."
+  if [[ -d "profiles" || \
+        -d "values-files" || \
+        -d "k8s-configs" || \
+        $(find . -mindepth 1 -not -path "./.*" | wc -l | tr -d '[:space:]') == 0 ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+########################################################################################################################
 # Switch back to the previous branch and delete the staging branch.
 ########################################################################################################################
 finalize() {
@@ -98,6 +128,13 @@ finalize() {
 
 ### Script start ###
 
+if [[ "${IS_BELUGA_ENV}" == "true" ]]; then
+  if ! dir_sanity_check; then
+    echo "Directory sanity check failed, please check that you are running push-cluster-state.sh from a CSR or PR!!"
+    exit 1
+  fi
+fi
+
 # If profile repo and secondary region, early-out. The profiles will be exactly identical for all regions and should
 # already have been seeded when this script was run on primary region.
 IS_PRIMARY="${IS_PRIMARY:-false}"
@@ -107,6 +144,8 @@ if "${IS_PROFILE_REPO}" && ! "${IS_PRIMARY}"; then
   echo "Nothing to push to the profile repo for secondary regions"
   exit 0
 fi
+
+APPS_TO_PUSH=${APPS_TO_PUSH:-${ALL_APPS}}
 
 # Quiet mode where pretty console-formatting is omitted.
 QUIET="${QUIET:-false}"
@@ -177,8 +216,24 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   fi
 
   echo "Processing branch '${GIT_BRANCH}' for environment '${ENV}' and default branch '${DEFAULT_CDE_BRANCH}'"
-  # Get app paths
-  APP_PATHS=$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}" -mindepth 1 -maxdepth 1 -type d)
+
+  if is_all_apps; then
+    # Get all app paths
+    if "${IS_PROFILE_REPO}"; then
+      APP_PATHS=$(find "${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}" -mindepth 1 -maxdepth 1 -type d)
+    else
+      APP_PATHS=$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}" -mindepth 1 -maxdepth 1 -type d)
+    fi
+  else
+    # Get only APPS_TO_PUSH paths
+    for app in ${APPS_TO_PUSH}; do
+      if "${IS_PROFILE_REPO}"; then
+        APP_PATHS="${APP_PATHS}${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/${app} "
+      else
+        APP_PATHS="${APP_PATHS}${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${app} "
+      fi
+    done
+  fi
 
   if ! ${DISABLE_GIT}; then
     # Check if the branch exists locally. If so, switch to it.
@@ -228,33 +283,56 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   fi
 
   if "${IS_PRIMARY}"; then
-    # Clean-up everything in the repo.
-    echo "Cleaning up ${PWD}"
-    dir_deep_clean "${PWD}"
+    if is_all_apps; then
+      # Clean-up everything in the repo.
+      echo "Cleaning up ${PWD}"
+      dir_deep_clean "${PWD}"
+    else
+      # Clean up only APPS_TO_PUSH directories
+      for app in ${APPS_TO_PUSH}; do
+        if "${IS_PROFILE_REPO}"; then
+          echo "Cleaning up ${PWD}/${PROFILES_DIR}/${app}"
+          dir_deep_clean "${PWD}/${PROFILES_DIR}/${app}"
+        else
+          echo "Cleaning up ${PWD}/${app}"
+          dir_deep_clean "${PWD}/${app}"
+        fi
+      done
+    fi
 
     if "${IS_PROFILE_REPO}" || "${INCLUDE_PROFILES_IN_CSR}"; then
-      # Copy the base files into the repo.
-      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
-      echo "Copying base files from ${src_dir} to ${PWD}"
-      cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/update-profile-wrapper.sh ./
+      if is_all_apps; then
+        # Copy the base files into the repo.
+        src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
+        echo "Copying base files from ${src_dir} to ${PWD}"
+        cp "${src_dir}"/.gitignore ./
+        cp "${src_dir}"/upgrade-profile-wrapper.sh ./
+      fi
 
-      # Copy the profiles.
-      mkdir -p "${PROFILES_DIR}"
+      # Copy each app's profile files into the repo.
+      for pr_app_path in ${APP_PATHS}; do
+        pr_app_name=$(basename "${pr_app_path}")
 
-      # Copy the profiles.
-      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/"
-      echo "Copying ${src_dir} to ${PROFILES_DIR}"
-      find "${src_dir}" -maxdepth 1 -mindepth 1 -type d -exec cp -pr {} "${PROFILES_DIR}"/ \;
+        # Make the app dir
+        mkdir -p "${PROFILES_DIR}/${pr_app_name}"
+
+        # Copy the app profiles
+        src_dir="${pr_app_path}"
+        echo "Copying ${src_dir} to ${PROFILES_DIR}"
+        cp -pr "${src_dir}" "${PROFILES_DIR}/"
+      done
     fi
 
     if ! "${IS_PROFILE_REPO}"; then
-      # Copy the base files into the repo.
-      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}"
-      echo "Copying base files from ${src_dir} to ${PWD}"
-      cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/update-cluster-state-wrapper.sh ./
-      cp "${src_dir}"/csr-validation.sh ./
+      if is_all_apps; then
+        # Copy the base files into the repo.
+        src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}"
+        echo "Copying base files from ${src_dir} to ${PWD}"
+        cp "${src_dir}"/.gitignore ./
+        cp "${src_dir}"/upgrade-cluster-state-wrapper.sh ./
+        cp "${src_dir}"/csr-validation.sh ./
+        cp "${src_dir}"/seal-secret-values.py ./
+      fi
 
       # Copy each app's base files into the repo
       for app_path in ${APP_PATHS}; do
@@ -275,11 +353,13 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       done
     fi
 
-    # Last but not least, stick the version of Beluga into a version.txt file.
-    beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${K8S_CONFIGS_DIR}" \
-      -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
-    echo "Beluga version is ${beluga_version} for environment ${ENV}"
-    echo "${beluga_version}" > version.txt
+    if is_all_apps; then
+      # Last but not least, stick the version of Beluga into a version.txt file.
+      beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${K8S_CONFIGS_DIR}" \
+        -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
+      echo "Beluga version is ${beluga_version} for environment ${ENV}"
+      echo "${beluga_version}" > version.txt
+    fi
   fi
 
   if "${IS_PROFILE_REPO}"; then
@@ -301,7 +381,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       cp -pr "${src_dir}" "${app_name}/"
     done
 
-    commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
+    commit_msg="Initial commit of cluster state code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi
 
   if ! ${DISABLE_GIT}; then

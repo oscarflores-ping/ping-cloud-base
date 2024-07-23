@@ -5,7 +5,6 @@
 # every poll interval.
 
 # Developing this script? Check out https://confluence.pingidentity.com/x/2StOCw
-
 LOG_FILE=/tmp/git-ops-command.log
 
 ########################################################################################################################
@@ -118,6 +117,53 @@ enable_external_ingress() {
         "${kust_file}"
       rm -f "${kust_file}".bak
     done
+  done
+}
+
+########################################################################################################################
+# Disable grafana operator CRDs if not argo environment.
+########################################################################################################################
+disable_grafana_crds() {
+  cd "${TMP_DIR}"
+  search_term="grafana-operator\/base"
+  for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
+      log "Commenting grafana ${kust_file}"
+      sed -i.bak \
+        -e "/${search_term}/ s|^#*|#|g" \
+        "${kust_file}"
+      rm -f "${kust_file}".bak
+    done
+}
+
+########################################################################################################################
+# Disable grafana operator CRDs if not argo environment.
+########################################################################################################################
+disable_os_operator_crds() {
+  cd "${TMP_DIR}"
+  search_term="opensearch-operator\/crd"
+  for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
+      log "Commenting opensearch operator ${kust_file}"
+      sed -i.bak \
+        -e "/${search_term}/ s|^#*|#|g" \
+        "${kust_file}"
+      rm -f "${kust_file}".bak
+    done
+}
+
+########################################################################################################################
+# Set customer-p1-connection job suspension value
+########################################################################################################################
+set_customer_p1_connection_job_suspension() {
+  cd "${TMP_DIR}"
+  local search_term='customer-p1-connection'
+  for job_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "customer-p1-connection.yaml"); do
+    local customer_p1_enabled_lc
+    customer_p1_enabled_lc=$(echo "${CUSTOMER_PINGONE_ENABLED}" | tr '[:upper:]' '[:lower:]')
+    if [[ "${customer_p1_enabled_lc}" == "true" ]]; then
+      log "Setting customer-p1-connection job suspension value in ${job_file}"
+      sed -i.bak 's/suspend: true/suspend: false/g' "${job_file}"
+      rm -f "${job_file}".bak
+    fi
   done
 }
 
@@ -272,6 +318,13 @@ else
   build_load_arg_value='none'
 fi
 
+if ! command -v argocd &> /dev/null ; then
+  disable_grafana_crds
+  disable_os_operator_crds
+fi
+
+set_customer_p1_connection_job_suspension
+
 # Build the uber deploy yaml
 if [[ ${DEBUG} == "true" ]]; then
   log "DEBUG - generating uber yaml file from '${BUILD_DIR}' to /tmp/uber-debug.yaml"
@@ -284,6 +337,7 @@ elif test -z "${OUT_DIR}" || test ! -d "${OUT_DIR}"; then
   # Wait for the process ID of the Kustomize build to forward the corresponding return code to Argo CD.
   wait $kustomize_pid
   exit $?
+
 # TODO: leave this functionality for now - it outputs many yaml files to the OUT_DIR
 # it isn't clear if this is still used in actual CDEs
 else

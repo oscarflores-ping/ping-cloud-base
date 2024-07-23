@@ -37,6 +37,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: external-dns
+  labels:
+    app: external-dns
 spec:
   strategy:
     type: Recreate
@@ -69,3 +71,4 @@ spec:
         - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
         - --registry=txt
         - --publish-internal-services
+        - --log-level=error
