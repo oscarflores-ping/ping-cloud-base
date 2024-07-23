@@ -1,5 +1,3 @@
-# https://kubernetes.github.io/ingress-nginx/how-it-works/#when-a-reload-is-required
-# Ingress Nginx controller webhook validation is not recommended for production environments because it can introduce a single point of failure. If the webhook server is unavailable, then new Ingress resources will not be able to be created or updated. Additionally, the webhook server can be a target for attacks.
 kind: Kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 
@@ -200,7 +198,7 @@ patches:
       path: /spec/template/spec/containers/0/ports/1
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: public.ecr.aws/r2h3l6e4/pingcloud-services/sigsci-nginx-ingress-controller/dev:v1.19-release-branch-latest
+      value: public.ecr.aws/r2h3l6e4/pingcloud-services/sigsci-nginx-ingress-controller/dev:v1.18-release-branch-latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always

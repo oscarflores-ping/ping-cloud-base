@@ -14,3 +14,4 @@ spec:
           requests:
             memory: "4Gi"
             cpu: 1
+

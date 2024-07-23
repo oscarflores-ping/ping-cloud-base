@@ -18,7 +18,6 @@ data:
       evaluation_interval: 5s
       external_labels:
         k8s_cluster_name: ${CLUSTER_NAME}-${TENANT_NAME}-${REGION_NICK_NAME}
-        k8s_cluster_region: ${REGION_NICK_NAME}
     remote_write:
     - url: 'http://prometheus:9090/api/v1/write'
 
@@ -36,6 +35,118 @@ data:
     - job_name: 'kube-state-metrics'
       static_configs:
       - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+
+    # Discover and monitor PD instances
+    - job_name: 'pd-statsd-exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: metrics;pingdirectory
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PD JMX instances
+    - job_name: 'pd-jmx-exporter'
+      scrape_interval: 10s
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: jmx-metrics;pingdirectory
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PD instances
+    - job_name: 'prometheus-job-exporter'
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: metrics;prometheus-job-exporter
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PF instances
+    - job_name: 'pf-jmx-exporter'
+      scrape_interval: 10s
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: metrics;pingfederate
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PF instances
+    - job_name: 'pf-heartbeat-exporter'
+      scrape_interval: 10s
+      metrics_path: /
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: pf-heartbeat;pingfederate
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PA instances
+    - job_name: 'pa-jmx-exporter'
+      scrape_interval: 10s
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: metrics;pingaccess
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+    # Discover and monitor PA instances
+    - job_name: 'pa-heartbeat-exporter'
+      scrape_interval: 10s
+      metrics_path: /
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: pa-heartbeat;pingaccess
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
 
     # Other k8s jobs to scrape - see https://devopscube.com/setup-prometheus-monitoring-on-kubernetes/
     - job_name: 'kubernetes-apiservers'
@@ -66,7 +177,39 @@ data:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/${1}/proxy/metrics
-        
+    
+    - job_name: 'logstash-exporter'
+      scrape_interval: 10s
+      metrics_path: /metrics
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: metrics;logstash-elastic
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+  
+    - job_name: 'fluentbit-exporter'
+      scrape_interval: 10s
+      metrics_path: /api/v1/metrics/prometheus
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_endpoint_port_name, __meta_kubernetes_service_name]
+        action: keep
+        regex: api;fluent-bit
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: instance
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+    
     - job_name: 'kubernetes-pods'
       kubernetes_sd_configs:
       - role: pod
@@ -90,7 +233,7 @@ data:
         target_label: kubernetes_namespace
       - source_labels: [__meta_kubernetes_pod_name]
         action: replace
-        target_label: instance
+        target_label: kubernetes_pod_name
     
     - job_name: 'kubernetes-cadvisor'
       scheme: https
@@ -112,8 +255,6 @@ data:
     - job_name: 'kubernetes-service-endpoints'
       kubernetes_sd_configs:
       - role: endpoints
-      tls_config:
-        insecure_skip_verify: true
       relabel_configs:
       - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
         action: keep
@@ -139,9 +280,6 @@ data:
       - source_labels: [__meta_kubernetes_service_name]
         action: replace
         target_label: kubernetes_name
-      - source_labels: [__meta_kubernetes_pod_name]
-        action: replace
-        target_label: instance
     
     - job_name: 'crunchy-postgres-exporter'
       kubernetes_sd_configs:

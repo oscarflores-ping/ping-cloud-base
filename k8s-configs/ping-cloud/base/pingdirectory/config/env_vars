@@ -1,8 +1,8 @@
 ORCHESTRATION_TYPE=kubernetes
 #VERBOSE=true
 SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
-SERVER_PROFILE_PATH=profiles/pingdirectory
-SERVER_PROFILE_BRANCH=v1.19-release-branch
+SERVER_PROFILE_PATH=profiles/aws/pingdirectory
+SERVER_PROFILE_BRANCH=v1.18-release-branch
 
 REGION=us-west-2
 LOCATION=Austin
@@ -47,14 +47,13 @@ ACCEPT_EULA=YES
 PING_IDENTITY_ACCEPT_EULA=YES
 
 LEAVE_DISK_AFTER_SERVER_DELETE=false
-# Do not set to 'true' until DS-45783 is resolved.
-OPTIMIZE_REPLACE_PROFILE=false
+OPTIMIZE_REPLACE_PROFILE=true
 INITIALIZE_REPLICATION_DATA=false
 
 # Leave blank
 TAIL_LOG_FILES=
 # Individual files should be spelled out, globs are unreliable
-K8S_TAIL_LOG_FILES=/opt/out/instance/logs/access /opt/out/instance/logs/errors /opt/out/instance/logs/failed-ops /opt/out/instance/logs/expensive-write-ops /opt/out/instance/logs/replication /opt/out/instance/logs/server.out /opt/out/instance/logs/http-detailed-access
+K8S_TAIL_LOG_FILES=/opt/out/instance/logs/access /opt/out/instance/logs/errors /opt/out/instance/logs/failed-ops /opt/out/instance/logs/expensive-write-ops /opt/out/instance/logs/replication /opt/out/instance/logs/server.out
 
 SECRETS_DIR=/usr/local/secrets
 
@@ -82,8 +81,8 @@ ADMIN_BIND_DN=cn=admin
 SYNC_BIND_DN=cn=sync
 CHANGELOG_SYNC_MAX_AGE=2h
 
-# Set to false to avoid skipping liveness probe. Skipping the liveness (SKIP_LIVENESS=true) is the default for PingDirectory.
-SKIP_LIVENESS=true
+# Flag to skip rebuilding backend indexes
+SKIP_INDEX_BUILD=false
 
 # Overriding these numbers will force PingDirectory to produce duplicate server IDs if not fully tested.
 # As of now PD_POD_LIMIT_INDEX=1000 and PD_BASE_DN_LIMIT_INDEX=20 will allow up to 50 pingdirectory pods per cluster with up to 11
@@ -91,16 +90,3 @@ SKIP_LIVENESS=true
 # These variables are used by pingcloud-apps/pingdirectory/src/hooks/offline-mode/manage_offline_mode.py
 PD_POD_LIMIT_INDEX=1000
 PD_BASE_DN_LIMIT_INDEX=20
-
-# Flag to skip rebuilding backend indexes
-SKIP_INDEX_BUILD=false
-
-
-########################################################################################################################
-#  PingDirectory Shared Cache Settings :
-########################################################################################################################
-#Set this to 'true' to use shared cache for the local backends
-PD_USE_SHARED_CACHE=false
-
-#Set this to define overall cache size .This would to be shared across all local backends
-SHARED_CACHE_PERCENT=55

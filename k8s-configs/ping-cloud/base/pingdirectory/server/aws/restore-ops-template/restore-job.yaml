@@ -17,7 +17,7 @@ spec:
   backoffLimit: 0
   template:
     spec:
-      serviceAccountName: pingdirectory-ops-serviceaccount
+      serviceAccountName: ping-serviceaccount
       priorityClassName: high-priority-apps-to-avoid-pending-state
       affinity:
         # This podAffinity rule is designed to deploy Backup/restore job to the same AZ as its targeted PingDirectory server
@@ -38,7 +38,7 @@ spec:
       restartPolicy: Never
       initContainers:
       - name: pingdirectory-discovery-service
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.15.36
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/amazon/aws-cli:2.0.17
         imagePullPolicy: IfNotPresent
         command:
         - /get_ssm_env_vars.sh
@@ -93,7 +93,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.19-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdirectory/dev:v1.18-release-branch-latest
         imagePullPolicy: Always
         command: [ "/bin/sh","-c" ]
         # 1) Copy P1AS hooks to staging

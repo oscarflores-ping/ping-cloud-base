@@ -12,5 +12,6 @@ resources:
 - monitoring
 - security
 - ebs-driver
+- efs-driver
 - pod-reaper
-- kube-downscaler
+- notification

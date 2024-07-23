@@ -3,7 +3,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 
 resources:
 - ../base
-- custom-resources
+- custom-resources 
 
 generatorOptions:
   disableNameSuffixHash: false
@@ -13,7 +13,7 @@ patchesStrategicMerge:
 ### MANUAL UPDATES SECTION - START
 
 ## Healthchecks
-# Runbook: https://pingidentity.atlassian.net/wiki/spaces/PDA/pages/427688292/How+to+Enable+and+Disable+Healthchecks+-+1.19.0
+# Runbook: https://pingidentity.atlassian.net/wiki/spaces/PDA/pages/427753486/How+to+Enable+and+Disable+Healthchecks+-+1.18.1
 # To disable all healthchecks (default):
 #   - uncomment the disable-all-healthchecks.yaml patch
 #   - comment the other patches
@@ -38,16 +38,9 @@ patchesStrategicMerge:
 ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
 - custom-patches.yaml
 
-### Remove observability dashboards for undeployed products
-- ../base/cluster-tools/monitoring/remove-chub-dashboards.yaml
-- ../base/cluster-tools/logging/remove-chub-dashboards.yaml
-
-### Cost saving measures
-- ../base/ping-cloud/pingaccess-was/engine/chub-pingaccess-was-scaledown-patch.yaml
-- ../base/cluster-tools/ingress/public/chub-public-ingress-scaledown-patch.yaml
-### Remove opensearch from chub
-- ../base/cluster-tools/logging/disable-opensearch-base-patch.yaml
-#- ../base/cluster-tools/logging/disable-opensearch-primary-region-patch.yaml
+### Remove unneccessary MyPing pods
+- ../base/ping-cloud/pingcommon/my-ping/remove-oauth-service.yaml
+- ../base/ping-cloud/pingcommon/my-ping/remove-pingone-configurator.yaml
 
 ### Regional enablement - remove admins, backups, etc. from secondary ###
 ### The removal of these patches is handled automatically via generate-cluster-state script, manual toggling is not needed ###
@@ -66,12 +59,6 @@ configMapGenerator:
     - logging/env_vars
 
 - name: prometheus-environment-variables
-  behavior: merge
-  envs:
-    - ../base/env_vars
-    - env_vars
-
-- name: p1as-bootstrap
   behavior: merge
   envs:
     - ../base/env_vars
@@ -119,6 +106,30 @@ configMapGenerator:
     - env_vars
     - pingaccess-was/engine/env_vars
 
+
+# PingCloud services
+# Pingcloud-metadata
+- name: pingcloud-metadata-environment-variables
+  behavior: merge
+  envs:
+  - ../base/env_vars
+  - env_vars
+
+# Pingcloud-healthcheck
+- name: pingcloud-healthcheck-environment-variables
+  namespace: ${PING_CLOUD_NAMESPACE}
+  behavior: merge
+  envs:
+  - ../base/env_vars
+  - env_vars
+
+# PingCloud BOM service
+- name: p14c-bom-service-environment-variables
+  behavior: merge
+  envs:
+    - ../base/env_vars
+    - env_vars
+
 # PingCloud P14C bootstrap
 - name: pingcloud-p14c-bootstrap-environment-variables
   behavior: merge
@@ -134,13 +145,6 @@ configMapGenerator:
   envs:
     - ../base/cluster-tools/git-ops/env_vars
     - git-ops/env_vars
-
-- name: p14c-environment-variables
-  namespace: argocd
-  behavior: merge
-  envs:
-    - ../base/env_vars
-    - env_vars
 
 # Healthcheck probes
 - name: cluster-health-environment-variables

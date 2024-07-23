@@ -1,4 +1,4 @@
-# Nginx ingress controller v1.9.6 configuration
+# Nginx ingress controller v1.9.6 configuration 
 
 The NGINX ingress controller has additional configuration options that can be customized and configured to create a more dynamic application. This can be done in two ways:
 
