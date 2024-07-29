@@ -11,6 +11,9 @@
 - Support customer bringing their own certificate for their external server and adding it to PingDataSync truststore
 - Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - Updated Newrelic agent to latest version
+- Refactor update-profile-wrapper code to support new variables for microservice profile mirrors.
+- De-duplicate prod-values.yaml
+- Updating memory limits for thanos-storegateway
 
 _Changes:_
 
@@ -19,10 +22,14 @@ _Changes:_
 - [X] PDO-5888 Implement p1as-pingdirectory pipeline deploy stage
 - [X] PDO-5900 Add p1as-pingdirectory code-gen directory to PCB
 - [X] PDO-6573 Support customer bringing their own certificate for their external server and adding it to PingDataSync truststore
+- [X] PDO-6744 Refactor update and generate scripts to pull from microservice repo mirrors
 - [X] PDO-6877 Update HPAs to prevent flapping on short bursting CPU loads
 - [X] PDO-7527 Grafana: Update PGO dashboards to be compatible with the current PGO version
 - [X] PDO-7608 Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - [X] PDO-7248 NewRelic: Upgrade APM agent to latest version
+- [X] PDO-7445 Remove toplogy-descriptor volume mount from products where not needed
+- [X] PDO-7469 De-duplicate prod-values.yaml
+- [X] PDO-7669 Thanos: Storage Gateway crashlooping with OOM killed when choosing old range of data on Prometheus/Grafana UI
 
 ### 1.19.1.0
 
@@ -41,3 +48,4 @@ _Changes:_
 - [X] PDO-7530 Implement permanent reduction of OS resources in 1.19.1
 - [X] PDO-7548 Add 'source cluster' identifier to graphs legend for Volume Autoscaler dashboard 
 - [X] PDO-7606 Updated Fluent Bit resource to successfully flush records when under minimal load 
+- [X] PDO-7768 Add customer-defined name to external IdP
