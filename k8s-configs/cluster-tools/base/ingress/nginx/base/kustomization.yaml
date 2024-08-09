@@ -215,7 +215,6 @@ patches:
           - --annotations-prefix=nginx.ingress.kubernetes.io
           - --http-port=8080
           - --https-port=8443
-          - --shutdown-grace-period=60
     - op: replace
       path: /spec/template/spec/containers/0/resources
       value:
@@ -253,28 +252,29 @@ patches:
       value: 101
 
     - op: add
-      path: /spec/strategy
+      path: /spec/template/spec/topologySpreadConstraint
       value:
-          rollingUpdate:
-            maxSurge: 25%
-            maxUnavailable: 0
-          type: RollingUpdate
-
-    - op: add
-      path: /spec/template/spec/affinity
-      value:
-          podAntiAffinity:
-            # Add a soft requirement for each nginx pod to be deployed to a different AZ
-            preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: app.kubernetes.io/name
-                      operator: In
-                      values:
-                        - ingress-nginx
-                topologyKey: "topology.kubernetes.io/zone"
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+          maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+    # - op: add
+    #   path: /spec/template/spec/affinity
+    #   value:
+    #       podAntiAffinity:
+    #         # Add a soft requirement for each nginx pod to be deployed to a different AZ
+    #         preferredDuringSchedulingIgnoredDuringExecution:
+    #         - weight: 1
+    #           podAffinityTerm:
+    #             labelSelector:
+    #               matchExpressions:
+    #                 - key: app.kubernetes.io/name
+    #                   operator: In
+    #                   values:
+    #                     - ingress-nginx
+    #             topologyKey: "topology.kubernetes.io/zone"
 
     # Removed metadata
     - op: remove
@@ -322,11 +322,6 @@ patches:
       path: /metadata/annotations
       value:
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
-
-    - op: add
-      path: /metadata/annotations
-      value:
-          service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
     - op: add
       path: /spec/externalTrafficPolicy
       value: Local

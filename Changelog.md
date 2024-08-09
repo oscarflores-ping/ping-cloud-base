@@ -11,6 +11,7 @@ _Changes:_
 - [X] PDO-7394 Remove Grafana dashboards from secondary region
 - [X] PDO-7434 Update Logstash HPA
 - [X] PDO-7461 Updated Prometheus CPU and memory limits and kustomize settings
+- [X] PDO-7489 Updates to decrease ContainerInsights
 - [X] PDO-7522 Fix autoscaling resource version to use v2
 - [X] PDO-7528 Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - [X] PDO-7530 Implement permanent reduction of OS resources in 1.19.1
@@ -22,6 +23,7 @@ _Changes:_
 - [X] PDO-7742 NewRelic: Optimize Metric Collection by Removing Unnecessary Data Points
 - [X] PDO-7759 Increase NR interval to 30s
 - [X] PDO-7768 Add customer-defined name to external IdP
+- [X] PDO-7772 Nginx ocsp integration test in ping-cloud-base causing instability
 - [X] PDO-7788 customer-p1-connection job suspension prevents ArgoCD app healthy status
 - [X] PDO-7789 Obfuscate client secret within oidc.properties.subst for PingFederate
 - [X] PDO-7805 Remove application/node logs from CloudWatch
