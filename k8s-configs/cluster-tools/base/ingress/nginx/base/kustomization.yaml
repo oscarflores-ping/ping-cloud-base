@@ -252,7 +252,7 @@ patches:
       value: 101
 
     - op: add
-      path: /spec/template/spec/topologySpreadConstraint
+      path: /spec/template/spec/topologySpreadConstraints
       value:
         - labelSelector:
             matchLabels:
