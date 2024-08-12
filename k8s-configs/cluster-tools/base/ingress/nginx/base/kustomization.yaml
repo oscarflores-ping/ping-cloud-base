@@ -260,21 +260,21 @@ patches:
           maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
           whenUnsatisfiable: ScheduleAnyway
-    # - op: add
-    #   path: /spec/template/spec/affinity
-    #   value:
-    #       podAntiAffinity:
-    #         # Add a soft requirement for each nginx pod to be deployed to a different AZ
-    #         preferredDuringSchedulingIgnoredDuringExecution:
-    #         - weight: 1
-    #           podAffinityTerm:
-    #             labelSelector:
-    #               matchExpressions:
-    #                 - key: app.kubernetes.io/name
-    #                   operator: In
-    #                   values:
-    #                     - ingress-nginx
-    #             topologyKey: "topology.kubernetes.io/zone"
+    - op: add
+      path: /spec/template/spec/affinity
+      value:
+          podAntiAffinity:
+            # Add a soft requirement for each nginx pod to be deployed to a different AZ
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - ingress-nginx
+                topologyKey: "topology.kubernetes.io/zone"
 
     # Removed metadata
     - op: remove
