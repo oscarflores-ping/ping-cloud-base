@@ -261,7 +261,6 @@ patches:
           topologyKey: topology.kubernetes.io/zone
           whenUnsatisfiable: ScheduleAnyway
 
-
     # Removed metadata
     - op: remove
       path: /spec/template/metadata
