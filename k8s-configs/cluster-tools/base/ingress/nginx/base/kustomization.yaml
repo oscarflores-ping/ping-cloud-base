@@ -320,14 +320,15 @@ patches:
       path: /metadata/annotations
       value: 
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
-    - op: add
-      path: /spec/externalTrafficPolicy
-      value: Local
 
     - op: add
       path: /metadata/annotations
       value:
           service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
+    - op: add
+      path: /spec/externalTrafficPolicy
+      value: Local
 
     - op: replace
       path: /spec/type
