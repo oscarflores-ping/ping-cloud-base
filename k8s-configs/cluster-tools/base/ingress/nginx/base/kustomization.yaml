@@ -327,7 +327,7 @@ patches:
     - op: add
       path: /metadata/annotations
       value:
-          service.beta.kubernetes.io~1aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+          service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
 
     - op: replace
       path: /spec/type
