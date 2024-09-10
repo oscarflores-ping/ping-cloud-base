@@ -15,7 +15,7 @@ if [[ $# != 1 ]]; then
 fi
 
 EXTERNAL_DNS_VERSION="${1}"
-EXTERNAL_DNS_RAW_URL="${EXTERNAL_DNS_RAW_URL}"
+EXTERNAL_DNS_RAW_URL="https://raw.githubusercontent.com/kubernetes-sigs/external-dns"
 
 curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrole.yaml" -o external-dns-clusterrole.yaml
 curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrolebinding.yaml" -o external-dns-clusterrolebinding.yaml
