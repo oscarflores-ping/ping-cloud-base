@@ -16,8 +16,9 @@ patches:
     name: external-dns
   patch: |
     - op: add
-      path: /metadata/labels/app
-      value: external-dns
+      path: /metadata/labels
+      value: 
+          app: external-dns
     - op: add 
       path: /spec/template/spec/securityContext
       value:
