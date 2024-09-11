@@ -7,7 +7,7 @@ resources:
 - namespace.yaml
 - external-dns-serviceaccount.yaml
 - external-dns-clusterrole.yaml
-# - external-dns-clusterrolebinding.yaml
+- external-dns-clusterrolebinding.yaml
 # - external-dns-deployment.yaml
 
 # patches:
