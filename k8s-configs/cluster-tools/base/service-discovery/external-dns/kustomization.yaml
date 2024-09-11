@@ -15,6 +15,9 @@ patches:
     kind: Deployment
     name: external-dns
   patch: |
+    - op: add
+      path: /metadata/labels/app
+      value: external-dns
     - op: add 
       path: /spec/template/spec/securityContext
       value:
