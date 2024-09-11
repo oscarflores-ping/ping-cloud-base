@@ -17,10 +17,9 @@ patches:
     group: apps
     version: v1
   patch: |-
-    - op: add
-      path: /metadata/labels
-      value:
-          app: external-dns
+    # metadata:
+    #   labels:
+    #     app: external-dns
 
     - op: add 
       path: /spec/template/spec/securityContext
