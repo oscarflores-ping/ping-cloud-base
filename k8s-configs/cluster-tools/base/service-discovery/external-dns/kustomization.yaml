@@ -39,3 +39,6 @@ patches:
           - --registry=txt
           - --publish-internal-services
           - --log-level=error
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/external-dns/external-dns:v0.14.2
