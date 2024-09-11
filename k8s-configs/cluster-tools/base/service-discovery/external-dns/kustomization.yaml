@@ -16,5 +16,5 @@ patches:
     name: external-dns
   patch: |
     - op: add 
-      path: /spec/template/spec/securityContext
-          fsGroup: 65534
+      path: /spec/template/spec/securityContext/fsGroup
+      value: 65534
