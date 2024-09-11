@@ -11,10 +11,10 @@ resources:
 - external-dns-deployment.yaml
 
 patches:
-- target:
-    kind: Deployment
-    name: external-dns
-  patch: |
-    - op: add 
+- patch: | 
+    - op: add
       path: /spec/template/spec/securityContext/fsGroup
       value: 65534
+  target:
+    kind: Deployment
+    name: external-dns
