@@ -22,7 +22,6 @@ patches:
       value:
           app: external-dns
 
-    ### For ExternalDNS to be able to read Kubernetes and AWS token files
     - op: add 
       path: /spec/template/spec/securityContext
           fsGroup: 65534 
