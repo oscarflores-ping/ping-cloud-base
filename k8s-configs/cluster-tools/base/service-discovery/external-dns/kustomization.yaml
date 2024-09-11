@@ -10,20 +10,20 @@ resources:
 - external-dns-clusterrolebinding.yaml
 - external-dns-deployment.yaml
 
-# patches:
-# - target:
-#   kind: Deployment
-#   name: external-dns
-#   patch: |
-#     - op: add
-#       path: /metadata/labels
-#       value:
-#           app: external-dns
+patches:
+- target:
+  kind: Deployment
+  name: external-dns
+  patch: |
+    - op: add
+      path: /metadata/labels
+      value:
+          app: external-dns
 
-#     ### For ExternalDNS to be able to read Kubernetes and AWS token files
-#     - op: add 
-#       path: /spec/template/spec/securityContext
-#           fsGroup: 65534 
+    ### For ExternalDNS to be able to read Kubernetes and AWS token files
+    - op: add 
+      path: /spec/template/spec/securityContext
+          fsGroup: 65534 
 
 #     - op: add
 #       path: /spec/template/spec/containers/0/resources
