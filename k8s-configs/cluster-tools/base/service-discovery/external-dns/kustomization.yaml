@@ -24,7 +24,7 @@ patches:
 
     - op: add 
       path: /spec/template/spec/securityContext
-          fsGroup: 65534 
+          fsGroup: 65534
 
 #     - op: add
 #       path: /spec/template/spec/containers/0/resources
