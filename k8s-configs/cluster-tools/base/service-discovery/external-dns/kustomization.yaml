@@ -28,3 +28,14 @@ patches:
           requests:
             cpu: 300m
             memory: 256Mi
+    - op: replace
+      path: /spec/template/spec/containers/0/args
+      value:
+          - --source=service
+          - --source-ingress
+          - --provider=aws
+          - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
+          - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
+          - --registry=txt
+          - --publish-internal-services
+          - --log-level=error
