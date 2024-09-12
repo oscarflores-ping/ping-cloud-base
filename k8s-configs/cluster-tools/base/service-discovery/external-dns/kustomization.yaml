@@ -5,10 +5,10 @@ namespace: external-dns
 
 resources:
 - namespace.yaml
-- external-dns-serviceaccount.yaml
-- external-dns-clusterrole.yaml
-- external-dns-clusterrolebinding.yaml
-- external-dns-deployment.yaml
+- serviceaccount.yaml
+- clusterrole.yaml
+- clusterrolebinding.yaml
+- deployment.yaml
 
 images:
 - name: registry.k8s.io/external-dns/external-dns
