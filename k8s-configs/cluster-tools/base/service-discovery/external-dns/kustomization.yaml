@@ -10,6 +10,11 @@ resources:
 - external-dns-clusterrolebinding.yaml
 - external-dns-deployment.yaml
 
+images:
+- name: registry.k8s.io/external-dns/external-dns
+  newName: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/external-dns/external-dns
+  newTag: v0.14.2
+
 patches:
 - target:
     kind: Deployment
@@ -43,6 +48,3 @@ patches:
           - --registry=txt
           - --publish-internal-services
           - --log-level=error
-    - op: replace
-      path: /spec/template/spec/containers/0/image
-      value: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/external-dns/external-dns:v0.14.2

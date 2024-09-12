@@ -17,9 +17,9 @@ fi
 EXTERNAL_DNS_VERSION="${1}"
 EXTERNAL_DNS_RAW_URL="https://raw.githubusercontent.com/kubernetes-sigs/external-dns"
 
-curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrole.yaml" -o external-dns-clusterrole.yaml
-curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrolebinding.yaml" -o external-dns-clusterrolebinding.yaml
-curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-deployment.yaml" -o external-dns-deployment.yaml
-curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-serviceaccount.yaml" -o external-dns-serviceaccount.yaml
+curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrole.yaml" -o clusterrole.yaml
+curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-clusterrolebinding.yaml" -o clusterrolebinding.yaml
+curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-deployment.yaml" -o deployment.yaml
+curl "${EXTERNAL_DNS_RAW_URL}/${EXTERNAL_DNS_VERSION}/kustomize/external-dns-serviceaccount.yaml" -o serviceaccount.yaml
 
 echo "external-dns update complete, check your 'git diff' to see what changed"
