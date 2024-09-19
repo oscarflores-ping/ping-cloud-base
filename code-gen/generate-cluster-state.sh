@@ -191,6 +191,9 @@
 # CUSTOMER_SSO_SSM_PATH_PREFIX     | The prefix of an SSM path that contains PingOne    | ${CUSTOMER_SSM_PATH_PREFIX}/sso
 #                                  | state data required for the P14C/P1AS integration. |
 #                                  |                                                    |
+# CUSTOMER_TLS_SSM_PATH_PREFIX | The prefix of a Secrets Manager path that contains | ${CUSTOMER_SSM_PATH_PREFIX}/tls
+#                                  | TLS state data.                                    |
+#                                  |                                                    |
 # PF_PROVISIONING_ENABLED          | Feature Flag - Indicates if the outbound           | False
 #                                  | provisioning feature for PingFederate is enabled   |
 #                                  | !! Not yet available for multi-region customers !! |
@@ -341,6 +344,7 @@ ${IS_MULTI_CLUSTER}
 ${PLATFORM_EVENT_QUEUE_NAME}
 ${CUSTOMER_SSM_PATH_PREFIX}
 ${CUSTOMER_SSO_SSM_PATH_PREFIX}
+${CUSTOMER_TLS_SSM_PATH_PREFIX}
 ${SERVICE_SSM_PATH_PREFIX}
 ${REGION}
 ${REGION_NICK_NAME}
@@ -667,6 +671,7 @@ echo "Initial IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 echo "Initial PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
 echo "Initial CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 echo "Initial CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
+echo "Initial CUSTOMER_TLS_SSM_PATH_PREFIX: ${CUSTOMER_TLS_SSM_PATH_PREFIX}"
 echo "Initial SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 echo "Initial REGION: ${REGION}"
 echo "Initial REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -778,6 +783,7 @@ export ARTIFACT_REPO_URL="${ARTIFACT_REPO_URL:-unused}"
 export PLATFORM_EVENT_QUEUE_NAME=${PLATFORM_EVENT_QUEUE_NAME:-v2_platform_event_queue.fifo}
 export CUSTOMER_SSM_PATH_PREFIX=${CUSTOMER_SSM_PATH_PREFIX:-/pcpt/customer}
 export CUSTOMER_SSO_SSM_PATH_PREFIX=${CUSTOMER_SSO_SSM_PATH_PREFIX:-${CUSTOMER_SSM_PATH_PREFIX}/sso}
+export CUSTOMER_TLS_SSM_PATH_PREFIX=${CUSTOMER_TLS_SSM_PATH_PREFIX:-${CUSTOMER_SSM_PATH_PREFIX}/tls}
 export SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX:-/pcpt/service}
 
 export LAST_UPDATE_REASON="${LAST_UPDATE_REASON:-NA}"
@@ -979,6 +985,7 @@ echo "Using IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 echo "Using PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
 echo "Using CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 echo "Using CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
+echo "Using CUSTOMER_TLS_SSM_PATH_PREFIX: ${CUSTOMER_TLS_SSM_PATH_PREFIX}"
 echo "Using SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 echo "Using REGION: ${REGION}"
 echo "Using REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -1350,13 +1357,6 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     echo >> "${BASE_ENV_VARS}"
     echo "IS_BELUGA_ENV=true" >> "${BASE_ENV_VARS}"
 
-    # Resetting to empty string , once versent is done https://pingidentity.atlassian.net/browse/PP-5719 and will remove this code as per PDO-5136
-    export IRSA_PING_ANNOTATION_KEY_VALUE=""
-    export IRSA_PA_ANNOTATION_KEY_VALUE=""
-    export IRSA_PD_ANNOTATION_KEY_VALUE=""
-    export IRSA_PF_ANNOTATION_KEY_VALUE=""
-    export IRSA_CWAGENT_ANNOTATION_KEY_VALUE=""
-
     sed -i.bak -e "/disable-karpenter/ s|^#*|#|g" "${K8S_CONFIGS_DIR}/base/cluster-tools/karpenter/kustomization.yaml"
     sed -i.bak -e "/disable-kubedownscaler/ s|^#*|#|g" "${K8S_CONFIGS_DIR}/base/cluster-tools/kube-downscaler/kustomization.yaml"
 
@@ -1435,9 +1435,14 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   # Create temp dir for cloned profiles
   PROFILE_REPO_MIRROR_DIR="$(mktemp -d)"
   for app_repo in ${PROFILE_REPO_MIRRORS[@]}; do
-    app_repo_branch=$(yq e '.helmCharts[].version' ./templates/${app_repo}/region/kustomization.yaml)
-    # Remove '-latest' from app_repo_branch if present
-    app_repo_branch="${app_repo_branch%-latest}"
+    # First try to get the branch from the profileBranch key if it exists
+    app_repo_branch=$(yq e '.helmCharts[].valuesInline.profileBranch' ./templates/${app_repo}/region/kustomization.yaml)
+    # Otherwise, use the version key
+    if [ "${app_repo_branch}" == "null" ]; then
+      app_repo_branch=$(yq e '.helmCharts[].version' ./templates/${app_repo}/region/kustomization.yaml)
+      # Remove '-latest' from app_repo_branch if present
+      app_repo_branch="${app_repo_branch%-latest}"
+    fi
 
     # Remove 'p1as-' prefix from repository names
     product_name=${app_repo#p1as-}
