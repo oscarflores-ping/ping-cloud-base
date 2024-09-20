@@ -1254,6 +1254,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "IRSA_ARGOCD_ANNOTATION_KEY_VALUE" "" "${IRSA_BASE_PATH}" "irsa-argocd/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_INGRESS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/ingress-controller/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_CLUSTER_AUTOSCALER_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cluster-autoscaler/arn" "${IRSA_TEMPLATE}"
+  echo "${IRSA_CLUSTER_AUTOSCALER_ANNOTATION_KEY_VALUE}"
 
   # shellcheck disable=SC2016
   KARPENTER_ROLE_TEMPLATE='eks.amazonaws.com/role-arn: arn:aws:iam::${ssm_value}:role'
