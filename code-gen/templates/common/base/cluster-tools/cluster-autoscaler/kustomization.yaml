@@ -23,3 +23,14 @@ patchesJson6902:
       value:
         - name: AWS_REGION
           value: ${REGION}
+
+- target:
+    version: v1
+    kind: ServiceAccount
+    name: cluster-autoscaler
+    namespace: kube-system
+  patch: |-
+    - op: add
+      path: /metadata/annotations
+      value:
+        ${IRSA_CLUSTER_AUTOSCALER_ANNOTATION_KEY_VALUE}
