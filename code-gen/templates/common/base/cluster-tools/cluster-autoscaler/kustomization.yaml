@@ -14,7 +14,7 @@ patchesStrategicMerge:
     name: cluster-autoscaler
     namespace: kube-system
     annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::705370621539:role/oscarjflores-primary-irsa-cluster-autoscaler
+      ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}
 
 patchesJson6902:
 
