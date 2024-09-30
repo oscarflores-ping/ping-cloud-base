@@ -100,7 +100,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdatasync/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdatasync/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         resources:
           limits:
@@ -198,15 +198,15 @@ spec:
           - name: data-dir
             mountPath: /opt/staging/hooks/logger.lib.sh
             subPath: logger.lib.sh
+          - name: topology-descriptor
+            mountPath: /opt/staging/topology/descriptor.json
+            subPath: descriptor.json
           - name: pingdatasync-passwords
             mountPath: /usr/local/secrets
             readOnly: true
           - name: pingdirectory-license
             mountPath: /opt/in/instance/conf/PingDirectory.lic
             subPath: PingDirectory.lic
-          - name: pingdatasync-truststore-certs
-            mountPath: /usr/local/secrets/truststore_certs
-            readOnly: true
       securityContext:
         fsGroup: 9999
       volumes:
@@ -218,6 +218,11 @@ spec:
           configMap:
             name: pingcommon-init
             defaultMode: 0555
+        - name: topology-descriptor
+          configMap:
+            name: topology-descriptor
+            optional: true
+            defaultMode: 0644
         - name: ssh-id-key-secret
           secret:
             secretName: ssh-id-key-secret
@@ -239,11 +244,6 @@ spec:
         - name: pingdirectory-license
           secret:
             secretName: pingdirectory-license
-            optional: true
-            defaultMode: 0400
-        - name: pingdatasync-truststore-certs
-          secret:
-            secretName: pingdatasync-truststore-certs
             optional: true
             defaultMode: 0400
   volumeClaimTemplates:

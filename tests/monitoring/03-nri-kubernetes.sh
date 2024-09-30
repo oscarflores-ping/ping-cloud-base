@@ -2,7 +2,6 @@
 
 CI_SCRIPTS_DIR="${SHARED_CI_SCRIPTS_DIR:-/ci-scripts}"
 . "${CI_SCRIPTS_DIR}"/common.sh "${1}"
-. "${CI_SCRIPTS_DIR}"/test/test_utils.sh
 
 if skipTest "${0}"; then
   log "Skipping test ${0}"
@@ -10,11 +9,7 @@ if skipTest "${0}"; then
 fi
 
 testNriBundleNrk8sKubeletIsRunning() {
-  resource_name="pingaccess-was"
-  resource_kind="nri-bundle-nrk8s-kubelet"
-  resource_namespace="newrelic"
-  verify_resource_with_sleep "${resource_kind}" "${resource_namespace}" "${resource_name}"
-
+  kubectl wait pod -l app.kubernetes.io/component=kubelet -n newrelic --for=condition=Ready=true --timeout=60s
   assertEquals "One or few nri-bundle-nrk8s-kubelet pods are failed to run properly." 0 $?
 }
 

@@ -105,7 +105,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
@@ -135,7 +135,7 @@ spec:
           mountPath: /opt/shared-dir
       containers:
       - name: pingaccess
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess/dev:v1.19-release-branch-latest
         securityContext:
           runAsGroup: 9999
           runAsNonRoot: true
@@ -154,6 +154,9 @@ spec:
           mountPath: /home/ping/.ssh
         - name: shared-dir
           mountPath: /opt/shared-dir
+        - name: topology-descriptor
+          mountPath: /opt/staging/topology/descriptor.json
+          subPath: descriptor.json
         - name: data-dir
           mountPath: /usr/local/bin/kubectl
           subPath: kubectl
@@ -219,7 +222,7 @@ spec:
           runAsGroup: 9999
           runAsNonRoot: true
           runAsUser: 9031
-        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/prometheus-json-exporter/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/prometheus-json-exporter/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         env:
           - name: SERVICE_SHORTNAME
@@ -256,6 +259,11 @@ spec:
         configMap:
           name: pingcommon-init
           defaultMode: 0555
+      - name: topology-descriptor
+        configMap:
+          name: topology-descriptor
+          optional: true
+          defaultMode: 0644
       - name: ssh-id-key-secret
         secret:
           secretName: ssh-id-key-secret

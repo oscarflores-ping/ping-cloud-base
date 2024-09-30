@@ -9,19 +9,6 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: pingfederate
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 60
-      policies:
-      - type: Pods
-        value: 1
-        periodSeconds: 5
-    scaleUp:
-      stabilizationWindowSeconds: 60
-      policies:
-       - type: Pods
-         value: 1
-         periodSeconds: 5
   metrics:
   - type: Resource
     resource:

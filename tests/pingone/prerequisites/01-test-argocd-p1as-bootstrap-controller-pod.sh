@@ -12,11 +12,8 @@ fi
 testArgoP1ASBootstrapSucceeded() {
   resource_name="argocd-p1as-bootstrap"
   resource_kind="job"
-  resource_namespace="argocd"
-  verify_resource_with_sleep "${resource_kind}" "${resource_namespace}" "${resource_name}"
-  status=$?
-
-  assertEquals "The status of the p14c-bootstrap pod should be Succeeded" 0 ${status}
+  verify_resource_with_sleep "${resource_kind}" "argocd" "${resource_name}"
+  assertEquals 0 $?
 }
 
 

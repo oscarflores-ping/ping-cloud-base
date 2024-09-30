@@ -74,7 +74,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdelegator/dev:v2.0-release-branch-latest
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdelegator/dev:v1.19-release-branch-latest
         imagePullPolicy: Always
         resources:
           requests:
@@ -86,6 +86,9 @@ spec:
         volumeMounts:
           - name: ssh-dir
             mountPath: /home/ping/.ssh
+          - name: topology-descriptor
+            mountPath: /opt/staging/topology/descriptor.json
+            subPath: descriptor.json
           - name: data-dir
             mountPath: /usr/local/bin/kubectl
             subPath: kubectl
@@ -136,6 +139,11 @@ spec:
           configMap:
             name: pingcommon-init
             defaultMode: 0555
+        - name: topology-descriptor
+          configMap:
+            name: topology-descriptor
+            optional: true
+            defaultMode: 0644
         - name: ssh-id-key-secret
           secret:
             secretName: ssh-id-key-secret

@@ -18,17 +18,6 @@ rules:
     verbs:
     - create
     - update
-    - patch
-    - delete
-  - apiGroups:
-    - networking.k8s.io
-    resources:
-    - ingresses
-    verbs:
-    - create
-    - update
-    - patch
-    - delete
 
 ---
 
