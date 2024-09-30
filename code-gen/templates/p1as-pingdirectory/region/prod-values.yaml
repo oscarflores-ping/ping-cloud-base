@@ -1,0 +1,18 @@
+pingdirectory:
+  maxHeapSize: "15g"
+  statefulSet:
+    replicas: "3"
+    # Set container limits for the pingdirectory deployment
+    pingdirectory:
+      resources:
+        limits:
+          memory: "26Gi"
+        requests:
+          memory: "22Gi"
+    statsdExporter:
+      resources:
+        requests:
+          memory: "300Mi"
+  # Persistent volume size configuration.
+  persistentVolume:
+    size: 100Gi

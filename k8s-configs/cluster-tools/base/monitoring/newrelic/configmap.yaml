@@ -8,8 +8,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-agent-controlplane
 data:
   newrelic-infra.yml: |-
@@ -29,8 +29,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-controlplane
   namespace: newrelic
 data:
@@ -213,8 +213,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-agent-ksm
 data:
   newrelic-infra.yml: |-
@@ -234,8 +234,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-ksm
   namespace: newrelic
 data:
@@ -270,8 +270,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-agent-kubelet
 data:
   newrelic-infra.yml: |-
@@ -294,8 +294,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-integrations-cfg
 data:
   # This ConfigMap holds config files for integrations. They should have the following format:
@@ -339,8 +339,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-infrastructure
-    app.kubernetes.io/version: 3.17.0
-    helm.sh/chart: newrelic-infrastructure-3.22.0
+    app.kubernetes.io/version: 3.28.8
+    helm.sh/chart: newrelic-infrastructure-3.33.8
   name: nri-bundle-nrk8s-kubelet
   namespace: newrelic
 data:
@@ -374,7 +374,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: newrelic-prometheus-agent
     app.kubernetes.io/version: v2.37.8
-    helm.sh/chart: newrelic-prometheus-agent-1.3.0
+    helm.sh/chart: newrelic-prometheus-agent-1.13.2
 apiVersion: v1
 data:
   config.yaml: |-
@@ -461,8 +461,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: nri-kube-events
-    app.kubernetes.io/version: 2.2.2
-    helm.sh/chart: nri-kube-events-3.2.0
+    app.kubernetes.io/version: 2.9.8
+    helm.sh/chart: nri-kube-events-3.9.8
   name: nri-bundle-nri-kube-events-agent-config
   namespace: newrelic
 data:
@@ -479,8 +479,8 @@ metadata:
     app.kubernetes.io/instance: nri-bundle
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: nri-kube-events
-    app.kubernetes.io/version: 2.2.2
-    helm.sh/chart: nri-kube-events-3.2.0
+    app.kubernetes.io/version: 2.9.8
+    helm.sh/chart: nri-kube-events-3.9.8
   name: nri-bundle-nri-kube-events-config
   namespace: newrelic
 data:

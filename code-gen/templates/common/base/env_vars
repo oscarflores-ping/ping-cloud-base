@@ -52,6 +52,7 @@ PLATFORM_EVENT_QUEUE_POLL_BATCH_SIZE=1
 PLATFORM_EVENT_QUEUE_POLL_INTERVAL_SECONDS=2
 CUSTOMER_SSM_PATH_PREFIX=${CUSTOMER_SSM_PATH_PREFIX}
 CUSTOMER_SSO_SSM_PATH_PREFIX=${CUSTOMER_SSO_SSM_PATH_PREFIX}
+CUSTOMER_TLS_SSM_PATH_PREFIX=${CUSTOMER_TLS_SSM_PATH_PREFIX}
 SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX}
 ARGOCD_CDE_ROLE_SSM_TEMPLATE=${ARGOCD_CDE_ROLE_SSM_TEMPLATE}
 ARGOCD_CDE_URL_SSM_TEMPLATE=${ARGOCD_CDE_URL_SSM_TEMPLATE}
@@ -163,19 +164,19 @@ PING_IDENTITY_DEVOPS_KEY=${PING_IDENTITY_DEVOPS_KEY}
 ############################################################
 # Ping application image tags
 ############################################################
-PINGACCESS_IMAGE_TAG=v1.19-release-branch-latest
-PINGACCESS_WAS_IMAGE_TAG=v1.19-release-branch-latest
-PINGFEDERATE_IMAGE_TAG=v1.19-release-branch-latest
-PINGDIRECTORY_IMAGE_TAG=v1.19-release-branch-latest
-PINGDELEGATOR_IMAGE_TAG=v1.19-release-branch-latest
-PINGCENTRAL_IMAGE_TAG=v1.19-release-branch-latest
-PINGDATASYNC_IMAGE_TAG=v1.19-release-branch-latest
+PINGACCESS_IMAGE_TAG=v2.0-release-branch-latest
+PINGACCESS_WAS_IMAGE_TAG=v2.0-release-branch-latest
+PINGFEDERATE_IMAGE_TAG=v2.0-release-branch-latest
+# PINGDIRECTORY_IMAGE_TAG=v2.0-release-branch-latest
+PINGDELEGATOR_IMAGE_TAG=v2.0-release-branch-latest
+PINGCENTRAL_IMAGE_TAG=v2.0-release-branch-latest
+PINGDATASYNC_IMAGE_TAG=v2.0-release-branch-latest
 
 ############################################################
 # Ping solution image tags
 ############################################################
-BOOTSTRAP_IMAGE_TAG=v1.19-release-branch-latest
-P14C_INTEGRATION_IMAGE_TAG=v1.19-release-branch-latest
+BOOTSTRAP_IMAGE_TAG=v2.0-release-branch-latest
+P14C_INTEGRATION_IMAGE_TAG=v2.0-release-branch-latest
 
 ############################################################
 # Cluster name variables
@@ -192,7 +193,7 @@ PRIMARY_DNS_ZONE=${PRIMARY_DNS_ZONE}
 # Public hostnames
 ############################################################
 # Ping admin configuration required for admin access and clustering
-PD_PRIMARY_PUBLIC_HOSTNAME=pingdirectory-admin.${PRIMARY_DNS_ZONE_DERIVED}
+# PD_PRIMARY_PUBLIC_HOSTNAME=pingdirectory-admin.${PRIMARY_DNS_ZONE_DERIVED}
 PF_ADMIN_PUBLIC_HOSTNAME=pingfederate-admin.${PRIMARY_DNS_ZONE_DERIVED}
 PF_ADMIN_API_PUBLIC_HOSTNAME=pingfederate-admin-api.${PRIMARY_DNS_ZONE_DERIVED}
 PA_ADMIN_PUBLIC_HOSTNAME=pingaccess-admin.${PRIMARY_DNS_ZONE_DERIVED}
@@ -248,7 +249,8 @@ PROMETHEUS_PING_NAMESPACE=${PING_CLOUD_NAMESPACE}
 PF_PROVISIONING_ENABLED=${PF_PROVISIONING_ENABLED}
 
 RADIUS_PROXY_ENABLED=${RADIUS_PROXY_ENABLED}
-# List of ping apps(pingaccess,pingaccess-was,pingdirectory,pingdelegator,pingfederate) for which you can enable external ingress(the values are ping app names)Examplelist:(pingaccess pingdirectory pingfederate)
+# List of ping apps(pingaccess,pingaccess-was,pingdelegator,pingfederate) for which you can enable external ingress(the values are ping app names)Examplelist:(pingaccess pingaccess-was pingfederate)
+# Note pingdirectory external ingress is now controlled through the value `extIngressEnabled' in the 'p1as-pingdirectory/<region>/values.yaml' file.
 EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED}"
 
 # Runbook: https://pingidentity.atlassian.net/wiki/spaces/PDA/pages/427688292/How+to+Enable+and+Disable+Healthchecks+-+1.19.0
@@ -262,7 +264,7 @@ SLACK_CHANNEL=${SLACK_CHANNEL}
 
 # Dashboards repo variables
 DASH_REPO_URL=https://github.com/pingidentity/ping-cloud-dashboards
-DASH_REPO_BRANCH=v1.19-dev-branch
+DASH_REPO_BRANCH=v2.0-dev-branch
 
 # Healthcheck variables
 CLUSTER_HEALTHCHECK_SCHEDULE="* * * * *"

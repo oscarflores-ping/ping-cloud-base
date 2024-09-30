@@ -72,7 +72,7 @@
 # ACCOUNT_BASE_PATH                | The account's SSM base path                        | The SSM path: /pcpt/config/k8s-config/accounts/
 #                                  |                                                    |
 # ACCOUNT_TYPE                     | The variable denotes the type of account based on  | No defaults
-#                                  | the IS_GA flag: either 'ga' or 'non-ga'.           |                               
+#                                  | the IS_GA flag: either 'ga' or 'non-ga'.           |
 #                                  |                                                    |
 # ARGOCD_SLACK_TOKEN_SSM_PATH      | SSM path to secret token for ArgoCD slack          | The SSM path:
 #                                  | notifications                                      | ssm://pcpt/argocd/notification/slack/access_token
@@ -191,6 +191,9 @@
 # CUSTOMER_SSO_SSM_PATH_PREFIX     | The prefix of an SSM path that contains PingOne    | ${CUSTOMER_SSM_PATH_PREFIX}/sso
 #                                  | state data required for the P14C/P1AS integration. |
 #                                  |                                                    |
+# CUSTOMER_TLS_SSM_PATH_PREFIX | The prefix of a Secrets Manager path that contains | ${CUSTOMER_SSM_PATH_PREFIX}/tls
+#                                  | TLS state data.                                    |
+#                                  |                                                    |
 # PF_PROVISIONING_ENABLED          | Feature Flag - Indicates if the outbound           | False
 #                                  | provisioning feature for PingFederate is enabled   |
 #                                  | !! Not yet available for multi-region customers !! |
@@ -247,8 +250,8 @@
 #                                  | state data required for the cluster.               |
 #                                  |                                                    |
 # SLACK_CHANNEL                    | The Slack channel name for ArgoCD-Status Slack     | CDE environment: p1as-application-oncall                                  |                                                    |
-#                                  | notifications.                                     |             
-#                                  |                                                    |                                                                                  
+#                                  | notifications.                                     |
+#                                  |                                                    |
 # NON_GA_SLACK_CHANNEL             | The Slack channel name for ArgoCD-Status Slack     | CDE environment: nowhere
 #                                  | notifications.                                     | Dev environment: nowhere
 #                                  | Overrides SLACK_CHANNEL                            |
@@ -295,6 +298,7 @@
 #                                  | name and must have the correct case (e.g. ci-cd    | for tenant domain "ci-cd.ping-oasis.com"
 #                                  | vs. CI-CD).                                        |
 #                                  |                                                    |
+# THANOS_S3_BUCKET_NAME            | Name of the thanos bucket                          | Empty string
 #                                  |                                                    |
 # UPGRADE                          | Indicates generate-cluster-state.sh is running as  | The string "false"
 #                                  | an upgrade not an initial generation               |
@@ -340,6 +344,7 @@ ${IS_MULTI_CLUSTER}
 ${PLATFORM_EVENT_QUEUE_NAME}
 ${CUSTOMER_SSM_PATH_PREFIX}
 ${CUSTOMER_SSO_SSM_PATH_PREFIX}
+${CUSTOMER_TLS_SSM_PATH_PREFIX}
 ${SERVICE_SSM_PATH_PREFIX}
 ${REGION}
 ${REGION_NICK_NAME}
@@ -366,6 +371,7 @@ ${CLUSTER_STATE_REPO_PATH_DERIVED}
 ${SERVER_PROFILE_URL}
 ${SERVER_PROFILE_BRANCH_DERIVED}
 ${SERVER_PROFILE_PATH}
+${MICROSERVICE_APP_REPO_URL}
 ${ENV}
 ${ENVIRONMENT_TYPE}
 ${KUSTOMIZE_BASE}
@@ -430,6 +436,8 @@ ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}
 ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}
 ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}
 ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}
+${IRSA_THANOS_ANNOTATION_KEY_VALUE}
+${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}
 ${KARPENTER_ROLE_ANNOTATION_KEY_VALUE}
 ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}
 ${PF_PROVISIONING_ENABLED}
@@ -446,7 +454,8 @@ ${SLACK_CHANNEL}
 ${DASH_REPO_URL}
 ${DASH_REPO_BRANCH}
 ${APP_RESYNC_SECONDS}
-${CERT_RENEW_BEFORE}'
+${CERT_RENEW_BEFORE}
+${THANOS_S3_BUCKET_NAME}'
 
 # Variables to replace within the generated cluster state code
 REPO_VARS="${REPO_VARS:-${DEFAULT_VARS}}"
@@ -617,10 +626,11 @@ organize_code_for_csr() {
           find "${app_target_dir}" -type f -name "prod-values.yaml" -exec rm -f {} +
           ;;
         stage | prod | customer-hub)
-          # rename prod-values.yaml to values.yaml (overwriting values.yaml if it exists)
+          # merge prod-values.yaml to values.yaml (overwriting values.yaml if it exists)
           prod_values_files=$(find "${app_target_dir}" -type f -name "prod-values.yaml")
           for prod_values_file in ${prod_values_files}; do
-            mv -f "${prod_values_file}" "${prod_values_file//prod-/}"
+            yq -i ". *= load(\"${prod_values_file}\")" "${prod_values_file//prod-/}"
+            rm -f $prod_values_file
           done
           ;;
       esac
@@ -636,7 +646,7 @@ organize_code_for_csr() {
 }
 
 # Checking required tools and environment variables.
-check_binaries "openssl" "ssh-keygen" "ssh-keyscan" "base64" "envsubst" "git" "aws" "rsync"
+check_binaries "openssl" "ssh-keygen" "ssh-keyscan" "base64" "envsubst" "git" "aws" "rsync" "yq"
 HAS_REQUIRED_TOOLS=${?}
 
 if test ${HAS_REQUIRED_TOOLS} -ne 0; then
@@ -662,6 +672,7 @@ echo "Initial IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 echo "Initial PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
 echo "Initial CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 echo "Initial CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
+echo "Initial CUSTOMER_TLS_SSM_PATH_PREFIX: ${CUSTOMER_TLS_SSM_PATH_PREFIX}"
 echo "Initial SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 echo "Initial REGION: ${REGION}"
 echo "Initial REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -691,6 +702,8 @@ echo "Initial PING_IDENTITY_DEVOPS_USER: ${PING_IDENTITY_DEVOPS_USER}"
 
 echo "Initial K8S_GIT_URL: ${K8S_GIT_URL}"
 echo "Initial K8S_GIT_BRANCH: ${K8S_GIT_BRANCH}"
+
+echo "Initial MICROSERVICE_APP_REPO_URL: ${MICROSERVICE_APP_REPO_URL}"
 
 echo "Initial SSH_ID_PUB_FILE: ${SSH_ID_PUB_FILE}"
 echo "Initial SSH_ID_KEY_FILE: ${SSH_ID_KEY_FILE}"
@@ -724,6 +737,8 @@ echo "Initial IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VAL
 echo "Initial IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
+echo "Initial IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
+echo "Initial IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Initial IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -770,6 +785,7 @@ export ARTIFACT_REPO_URL="${ARTIFACT_REPO_URL:-unused}"
 export PLATFORM_EVENT_QUEUE_NAME=${PLATFORM_EVENT_QUEUE_NAME:-v2_platform_event_queue.fifo}
 export CUSTOMER_SSM_PATH_PREFIX=${CUSTOMER_SSM_PATH_PREFIX:-/pcpt/customer}
 export CUSTOMER_SSO_SSM_PATH_PREFIX=${CUSTOMER_SSO_SSM_PATH_PREFIX:-${CUSTOMER_SSM_PATH_PREFIX}/sso}
+export CUSTOMER_TLS_SSM_PATH_PREFIX=${CUSTOMER_TLS_SSM_PATH_PREFIX:-${CUSTOMER_SSM_PATH_PREFIX}/tls}
 export SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX:-/pcpt/service}
 
 export LAST_UPDATE_REASON="${LAST_UPDATE_REASON:-NA}"
@@ -784,8 +800,6 @@ export SECONDARY_TENANT_DOMAINS="${SECONDARY_TENANT_DOMAINS}"
 
 if "${IS_BELUGA_ENV}"; then
   DERIVED_GLOBAL_TENANT_DOMAIN="global.${TENANT_DOMAIN_NO_DOT_SUFFIX}"
-  # 'yq' is only checked here because it is only used within Developer CDEs
-  check_binaries "yq" || { popd >/dev/null 2>&1 && exit 1; }
 else
   DERIVED_GLOBAL_TENANT_DOMAIN="$(echo "${TENANT_DOMAIN_NO_DOT_SUFFIX}" | sed -e "s/\([^.]*\).[^.]*.\(.*\)/global.\1.\2/")"
 fi
@@ -820,6 +834,8 @@ export SERVER_PROFILE_URL="${SERVER_PROFILE_URL:-${SERVER_PROFILE_URL_DERIVED}}"
 export K8S_GIT_URL="${K8S_GIT_URL:-https://github.com/pingidentity/ping-cloud-base.git}"
 export K8S_GIT_BRANCH="${K8S_GIT_BRANCH:-${CURRENT_GIT_BRANCH}}"
 
+export MICROSERVICE_APP_REPO_URL="${MICROSERVICE_APP_REPO_URL:-git@gitlab.corp.pingidentity.com:ping-cloud-private-tenant}"
+
 export SSH_ID_PUB_FILE="${SSH_ID_PUB_FILE}"
 export SSH_ID_KEY_FILE="${SSH_ID_KEY_FILE}"
 
@@ -829,6 +845,7 @@ export ACCOUNT_BASE_PATH=${ACCOUNT_BASE_PATH:-ssm://pcpt/config/k8s-config/accou
 export ACCOUNT_PATH_PREFIX=${ACCOUNT_BASE_PATH#ssm:/}
 export IRSA_BASE_PATH=${IRSA_BASE_PATH:-ssm://pcpt/irsa-role/}
 export PGO_BUCKET_URI_SUFFIX=${PGO_BUCKET_URI_SUFFIX:-/pgo-bucket/uri}
+export THANOS_BUCKET_URI_SUFFIX=${THANOS_BUCKET_URI_SUFFIX:-/service/storage/thanos/uri}
 
 # IRSA for ping product pods. The role name is predefined as a part of the interface contract.
 export IRSA_PING_ANNOTATION_KEY_VALUE=${IRSA_PING_ANNOTATION_KEY_VALUE:-''}
@@ -839,6 +856,8 @@ export IRSA_ARGOCD_ANNOTATION_KEY_VALUE=${IRSA_ARGOCD_ANNOTATION_KEY_VALUE:-''}
 export IRSA_CWAGENT_ANNOTATION_KEY_VALUE=${IRSA_CWAGENT_ANNOTATION_KEY_VALUE:-''}
 export IRSA_LOGSTASH_ANNOTATION_KEY_VALUE=${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE:-''}
 export IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE=${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE:-''}
+export IRSA_THANOS_ANNOTATION_KEY_VALUE=${IRSA_THANOS_ANNOTATION_KEY_VALUE:-''}
+export IRSA_CLUSTER_AUTOSCALER_KEY_VALUE=${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE:-''}
 export IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE=${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE:-''}
 export IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE=${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE:-''}
 export IRSA_INGRESS_ANNOTATION_KEY_VALUE=${IRSA_INGRESS_ANNOTATION_KEY_VALUE:-''}
@@ -969,6 +988,7 @@ echo "Using IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 echo "Using PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
 echo "Using CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 echo "Using CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
+echo "Using CUSTOMER_TLS_SSM_PATH_PREFIX: ${CUSTOMER_TLS_SSM_PATH_PREFIX}"
 echo "Using SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 echo "Using REGION: ${REGION}"
 echo "Using REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -998,6 +1018,8 @@ echo "Using PING_IDENTITY_DEVOPS_USER: ${PING_IDENTITY_DEVOPS_USER}"
 echo "Using K8S_GIT_URL: ${K8S_GIT_URL}"
 echo "Using K8S_GIT_BRANCH: ${K8S_GIT_BRANCH}"
 
+echo "Using MICROSERVICE_APP_REPO_URL: ${MICROSERVICE_APP_REPO_URL}"
+
 echo "Using SSH_ID_PUB_FILE: ${SSH_ID_PUB_FILE:-'<auto-generated>'}"
 echo "Using SSH_ID_KEY_FILE: ${SSH_ID_KEY_FILE:-'<auto-generated>'}"
 
@@ -1024,6 +1046,8 @@ echo "Using IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VALUE
 echo "Using IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
+echo "Using IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
+echo "Using IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Using IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -1070,6 +1094,8 @@ BOOTSTRAP_DIR="${TARGET_DIR}/${BOOTSTRAP_SHORT_DIR}"
 CLUSTER_STATE_REPO_DIR="${TARGET_DIR}/cluster-state"
 PROFILE_REPO_DIR="${TARGET_DIR}/profile-repo"
 PROFILES_DIR="${PROFILE_REPO_DIR}/profiles"
+PROFILE_REPO_MIRRORS=("p1as-pingdirectory")
+
 
 CUSTOMER_HUB='customer-hub'
 PING_CENTRAL='pingcentral'
@@ -1088,6 +1114,9 @@ cp ../.gitignore "${CLUSTER_STATE_REPO_DIR}"
 cp ../.gitignore "${PROFILE_REPO_DIR}"
 
 echo "${PING_CLOUD_BASE_COMMIT_SHA}" > "${TARGET_DIR}/pcb-commit-sha.txt"
+
+set_var "THANOS_S3_BUCKET_NAME" "" "${ACCOUNT_BASE_PATH}customer-hub" "${THANOS_BUCKET_URI_SUFFIX}"
+export THANOS_S3_BUCKET_NAME="${THANOS_S3_BUCKET_NAME#s3://}"
 
 # The SUPPORTED_ENVIRONMENT_TYPES variable can either be the CDE names (e.g. dev, test, stage, prod) or the CHUB name "customer-hub",
 # or the corresponding branch names (e.g. v1.8.0-dev, v1.8.0-test, v1.8.0-stage, v1.8.0-master, v1.8.0-customer-hub).
@@ -1220,6 +1249,8 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "IRSA_CWAGENT_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cloudwatch-agent/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_LOGSTASH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/logstash/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/opensearch/arn" "${IRSA_TEMPLATE}"
+  set_var "IRSA_THANOS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/thanos/arn" "${IRSA_TEMPLATE}"
+  set_var "IRSA_CLUSTER_AUTOSCALER_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cluster-autoscaler/arn" "${IRSA_TEMPLATE}"
   # ArgoCD only for customer-hub
   set_var "IRSA_ARGOCD_ANNOTATION_KEY_VALUE" "" "${IRSA_BASE_PATH}" "irsa-argocd/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_INGRESS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/ingress-controller/arn" "${IRSA_TEMPLATE}"
@@ -1239,6 +1270,8 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "PGO_BACKUP_BUCKET_NAME" "not_set" "${ACCOUNT_BASE_PATH}${ENV}" "${PGO_BUCKET_URI_SUFFIX}"
   # Remove s3:// prefix if present
   export PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME#s3://}
+
+
 
   ######################################################################################################################
   # Print out the final value being used for each environment specific variable.
@@ -1346,7 +1379,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     export CHUB_REGION_KUST_FILE="${CHUB_TEMPLATES_DIR}/region/kustomization.yaml"
     yq eval -i '.configMapGenerator += (load(strenv(CHUB_REGION_KUST_FILE)).configMapGenerator[] | select(.name == "argocd-bootstrap"))' "${PRIMARY_PING_KUST_FILE}"
     yq eval -i '.configMapGenerator += (load(strenv(CHUB_REGION_KUST_FILE)).configMapGenerator[] | select(.name == "p14c-environment-variables"))' "${PRIMARY_PING_KUST_FILE}"
-    
+
     # Keep ArgoCD in pingaccess-was-ingress by replacing the delete patches
     # shellcheck disable=SC2016
     if test "${ENV}" = "${CUSTOMER_HUB}"; then
@@ -1395,11 +1428,43 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     fi
   fi
 
-  echo "Copying server profiles for environment ${ENV}"
+  ########################################################################################################################
+  # Begin profile repo cloning and processing
+  ########################################################################################################################
   ENV_PROFILES_DIR="${PROFILES_DIR}/${ENV_OR_BRANCH}"
   mkdir -p "${ENV_PROFILES_DIR}"
 
+  echo "Copying server profiles for environment ${ENV}"
   cp -pr profiles/. "${ENV_PROFILES_DIR}"
+
+  # Create temp dir for cloned profiles
+  PROFILE_REPO_MIRROR_DIR="$(mktemp -d)"
+  for app_repo in ${PROFILE_REPO_MIRRORS[@]}; do
+    # First try to get the branch from the profileBranch key if it exists
+    app_repo_branch=$(yq e '.helmCharts[].valuesInline.profileBranch' ./templates/${app_repo}/region/kustomization.yaml)
+    # Otherwise, use the version key
+    if [ "${app_repo_branch}" == "null" ]; then
+      app_repo_branch=$(yq e '.helmCharts[].version' ./templates/${app_repo}/region/kustomization.yaml)
+      # Remove '-latest' from app_repo_branch if present
+      app_repo_branch="${app_repo_branch%-latest}"
+    fi
+
+    # Remove 'p1as-' prefix from repository names
+    product_name=${app_repo#p1as-}
+    # Clone microservice repo at the new version
+    log "Cloning ${app_repo}@${app_repo_branch} to '${PROFILE_REPO_MIRROR_DIR}'"
+    git clone -c advice.detachedHead=false --depth 1 --branch "${app_repo_branch}" "${MICROSERVICE_APP_REPO_URL}/p1as-apps/${app_repo}" "${PROFILE_REPO_MIRROR_DIR}/${app_repo}"
+
+    if test $? -ne 0; then
+      log "Unable to clone ${app_repo}@${app_repo_branch} from ${MICROSERVICE_APP_REPO_URL}/p1as-apps"
+      exit 1
+    fi
+    log "Creating directory for ${app_repo} profiles in ${ENV_PROFILES_DIR}"
+    mkdir -p "${ENV_PROFILES_DIR}/${product_name}"
+
+    log "Copying profile code from ${PROFILE_REPO_MIRROR_DIR}/${app_repo}/deploy/${app_repo}/profile/ to ${ENV_PROFILES_DIR}/${product_name}"
+    cp -r "${PROFILE_REPO_MIRROR_DIR}/${app_repo}/profile/." "${ENV_PROFILES_DIR}/${product_name}"
+  done
 
   if test "${ENV}" = "${CUSTOMER_HUB}"; then
     echo "CHUB deploy identified, retaining only PingCentral and PingAccess profiles"

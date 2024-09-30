@@ -200,10 +200,15 @@ patches:
       path: /spec/template/spec/containers/0/ports/1
     - op: replace
       path: /spec/template/spec/containers/0/image
-      value: public.ecr.aws/r2h3l6e4/pingcloud-services/sigsci-nginx-ingress-controller/dev:v1.19-release-branch-latest
+      value: public.ecr.aws/r2h3l6e4/pingcloud-services/sigsci-nginx-ingress-controller/dev:v2.0-release-branch-latest
     - op: replace
       path: /spec/template/spec/containers/0/imagePullPolicy
       value: Always
+
+    - op: replace
+      path: /spec/strategy/rollingUpdate/maxUnavailable
+      value: 0
+
     - op: replace
       path: /spec/template/spec/containers/0/args
       value:
@@ -215,6 +220,8 @@ patches:
           - --annotations-prefix=nginx.ingress.kubernetes.io
           - --http-port=8080
           - --https-port=8443
+          - --shutdown-grace-period=60
+
     - op: replace
       path: /spec/template/spec/containers/0/resources
       value:
@@ -308,6 +315,12 @@ patches:
       path: /metadata/annotations
       value:
           service.beta.kubernetes.io/aws-load-balancer-type: nlb
+
+    - op: add
+      path: /metadata/annotations
+      value:
+          service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+
     - op: add
       path: /spec/externalTrafficPolicy
       value: Local
