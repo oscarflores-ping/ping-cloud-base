@@ -1,5 +1,17 @@
 # Changelog
 
+### 2.1.0
+
+- Update PingDirectory resource limits
+- Use code sharing methods for Logger.lib.sh
+- Reconcile Grafana differences with p1as-observability
+
+_Changes:_
+
+- [X] PDO-4881 Use code sharing methods for Logger.lib.sh
+- [X] PDO-7616 Update PingDirectory resource limits
+- [X] PDO-8109 Reconcile Grafana differences with p1as-observability
+
 ### 2.0.0
 
 - Update version regexes from v*.*.*.* to v*.*.*
@@ -13,15 +25,13 @@
 - Support customer bringing their own certificate for their external server and adding it to PingDataSync truststore
 - Refactor update-profile-wrapper code to support new variables for microservice profile mirrors.
 - De-duplicate prod-values.yaml
+- Fluentbit - remove unnecessary configuration
 - Grafana fix PGO dashboard
 - Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - Updating memory limits for thanos-storegateway
-- Updating memory limits plus other enhancements for thanos-compactor
 - Adding Cross zone load balancing and graceful shutdown to nginx
 - Upgrade External DNS to v0.14.2
 - Disabling anonymous login for OpenSearch and removing prometheus_read role
-- log4j2.xml.subst root logger follows PF_DEBUG_LEVEL
-- Enable runtime bulkhead via API for PingFederate
 - Upgrade Cluster Autoscaler to v1.30.2
 
 _Changes:_
@@ -34,24 +44,18 @@ _Changes:_
 - [X] PDO-6744 Refactor update and generate scripts to pull from microservice repo mirrors
 - [X] PDO-6877 Update HPAs to prevent flapping on short bursting CPU loads
 - [X] PDO-7073 Update RBAC for p14c-bootstrap to allow ops on ingress resources
-- [X] PDO-7221 OpenSearch: OpenSearch: Disable anonymous login
 - [X] PDO-7248 NewRelic: Upgrade APM agent to latest version
 - [X] PDO-7428 Update seal-secret-values.py to seal with namespace only. Update secret structure
 - [X] PDO-7445 Remove toplogy-descriptor volume mount from products where not needed
 - [X] PDO-7455 Upgrade Cluster Autoscaler to v1.30.2
 - [X] PDO-7469 De-duplicate prod-values.yaml
+- [X] PDO-7482 Fluentbit - remove unnecessary configuration
 - [X] PDO-7527 Grafana: Update PGO dashboards to be compatible with the current PGO version
 - [X] PDO-7608 Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - [X] PDO-7669 Thanos: Storage Gateway crashlooping with OOM killed when choosing old range of data on Prometheus/Grafana UI
-- [X] PDO-7671 Thanos: Compactor is erroring with not enough ephemeral-storage
-- [X] PDO-7672 Thanos: Metrics older than 15 days are still present
-- [X] PDO-7683 Enable runtime bulkhead via API for PingFederate
-- [X] PDO-8085 Restrict PingFederate and PingAccess heartbeat response
-- [X] PDO-8121 log4j2.xml.subst root logger follows PF_DEBUG_LEVEL
 - [X] PDO-8150 Improve Stability and Shutdown Handling
 - [X] PDO-8193 Microservices profile repo feature branch testing fix
 - [X] PDO-8194 Upgrade External DNS to v0.14.2
-- [X] PDO-7564 Update number of shards for ingress index
 
 ### 1.19.1.0
 
