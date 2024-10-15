@@ -2,6 +2,7 @@
 
 CI_SCRIPTS_DIR="${SHARED_CI_SCRIPTS_DIR:-/ci-scripts}"
 . "${CI_SCRIPTS_DIR}"/common.sh "${1}"
+. "${CI_SCRIPTS_DIR}"/test/test_utils.sh "${1}"
 
 if skipTest "${0}"; then
   log "Skipping test ${0}"
@@ -10,27 +11,20 @@ fi
 
 checkWorkloadStatus() {
   workload=$1
+  namespace="argocd"
   # get workload name, available replicas, and desired replicas
-  workloads=$(kubectl get "$workload" -n argocd -o jsonpath='{range .items[*]}{.metadata.name} {.status.availableReplicas} {.spec.replicas}{"\n"}{end}')
-  log "$workloads"
+  workloads=$(kubectl get "$workload" -n "$namespace" -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
 
   while IFS= read -r line; do
-    workload_name=$(echo "$line" | awk '{print $1}')
-    available_replicas=$(echo "$line" | awk '{print $2}')
-    desired_replicas=$(echo "$line" | awk '{print $3}')
-
-    # default available_replicas to 0 when empty
-    if [ -z "$available_replicas" ]; then
-      available_replicas=0
-    fi
-    assertEquals "$workload $workload_name: Available replicas should match desired replicas" "$desired_replicas" "$available_replicas"
+    verify_resource_with_sleep "$workload" "$namespace" "$line"
+    assertEquals 0 $?
     
   done <<< "$workloads"
 }
 
 testAllWorkloadsRunning() {
-  checkWorkloadStatus "Statefulset"
-  checkWorkloadStatus "Deployment"
+  checkWorkloadStatus "statefulset"
+  checkWorkloadStatus "deployment"
 }
 
 testExpectedCRDSInstalled() {
@@ -49,8 +43,11 @@ testExpectedCRDSInstalled() {
 testArgocdAppsCreated() {
   base_app="${CLUSTER_NAME}-${REGION}-${ENV_TYPE}"
   app_list=($(find "${PROJECT_DIR}" -type d -name "p1as-*" -exec basename {} \;))
+
+  # currently all apps have the same prefix, adding them in
   app_list=("${app_list[@]/#/$base_app-}")
   app_list+=("${base_app}")
+
   for app in "${app_list[@]}"; do
     kubectl get app -n argocd "${app}" > /dev/null 2>&1
     assertEquals "Expected app: ${app} missing" 0 $?
