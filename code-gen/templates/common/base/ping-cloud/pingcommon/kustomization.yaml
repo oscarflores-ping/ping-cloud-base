@@ -7,8 +7,8 @@ resources:
 
 images:
   - name: ${ECR_REGISTRY_NAME}/pingcloud-services/bootstrap${ECR_ENV}
-    newName: 705370621539.dkr.ecr.us-west-2.amazonaws.com/pingcloud-services/bootstrap
-    newTag: pdo-7738v2
+    newName: ${ECR_REGISTRY_NAME}/pingcloud-services/bootstrap${ECR_ENV}
+    newTag: ${BOOTSTRAP_IMAGE_TAG}
 
 
 configMapGenerator:
