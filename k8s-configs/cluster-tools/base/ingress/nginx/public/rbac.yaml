@@ -25,6 +25,7 @@ rules:
   - get
   - create
   - update
+  - patch
   - watch
 - apiGroups:
   - coordination.k8s.io
