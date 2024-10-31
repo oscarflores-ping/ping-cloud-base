@@ -108,11 +108,11 @@
 #                                  | will be a subset of SUPPORTED_ENVIRONMENT_TYPES    |
 #                                  |                                                    |
 # EXTERNAL_INGRESS_ENABLED         | List of ping apps(pingaccess pingaccess-was        | No defaults
-#                                  | pingdirectory pingdelegator pingfederate) for      |
-#                                  | which you can enable external ingress(the values   |
-#                                  | are ping app names)                                |
-#                                  | Examplelist:"pingaccess pingdirectory pingfederate |
-#                                  | pingaccess-was pingdelegator"                      |
+#                                  | pingdelegator pingfederate) for which you can      |
+#                                  | enable external ingress(the values are ping app    |
+#                                  | names)                                             |
+#                                  | Examplelist:"pingaccess pingfederate pingdelegator |
+#                                  | pingaccess-was              "                      |
 #                                  |                                                    |
 # GLOBAL_TENANT_DOMAIN             | Region-independent URL used for DNS failover/      | Replaces the first segment of
 #                                  | routing.                                           | the TENANT_DOMAIN value with the
@@ -191,7 +191,7 @@
 # CUSTOMER_SSO_SSM_PATH_PREFIX     | The prefix of an SSM path that contains PingOne    | ${CUSTOMER_SSM_PATH_PREFIX}/sso
 #                                  | state data required for the P14C/P1AS integration. |
 #                                  |                                                    |
-# CUSTOMER_TLS_SSM_PATH_PREFIX | The prefix of a Secrets Manager path that contains | ${CUSTOMER_SSM_PATH_PREFIX}/tls
+# CUSTOMER_TLS_SSM_PATH_PREFIX     | The prefix of a Secrets Manager path that contains | ${CUSTOMER_SSM_PATH_PREFIX}/tls
 #                                  | TLS state data.                                    |
 #                                  |                                                    |
 # PF_PROVISIONING_ENABLED          | Feature Flag - Indicates if the outbound           | False
@@ -277,6 +277,12 @@
 #                                  | by the script. If provided, the SSH_ID_KEY_FILE    |
 #                                  | must also be provided and correspond to this       |
 #                                  | public key.                                        |
+#                                  |                                                    |
+# STAGE                            | The environment's "stage".                         | lab-us1
+#                                  | Lab/Preview/GA/Field/etc                           |
+#                                  | It is initially set by Versent as stage-region -   |
+#                                  | for example: ga-us1, then we consume only the      |
+#                                  | portion containing the stage in this script        |
 #                                  |                                                    |
 # SUPPORTED_ENVIRONMENT_TYPES      | The environment types that will be supported for   | dev test stage prod customer-hub
 #                                  | the customer                                       |
@@ -423,12 +429,14 @@ ${PINGCENTRAL_IMAGE_TAG}
 ${PINGACCESS_IMAGE_TAG}
 ${PINGACCESS_WAS_IMAGE_TAG}
 ${PINGFEDERATE_IMAGE_TAG}
-${PINGDIRECTORY_IMAGE_TAG}
 ${PINGDELEGATOR_IMAGE_TAG}
+${OPENSEARCH_BOOTSTRAP_IMAGE_TAG}
+${LOGSTASH_IMAGE_TAG}
 ${IRSA_PING_ANNOTATION_KEY_VALUE}
 ${IRSA_PA_ANNOTATION_KEY_VALUE}
 ${IRSA_PD_ANNOTATION_KEY_VALUE}
 ${IRSA_PF_ANNOTATION_KEY_VALUE}
+${IRSA_SS_ANNOTATION_KEY_VALUE}
 ${IRSA_ARGOCD_ANNOTATION_KEY_VALUE}
 ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}
 ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}
@@ -437,7 +445,6 @@ ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}
 ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}
 ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}
 ${IRSA_THANOS_ANNOTATION_KEY_VALUE}
-${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}
 ${KARPENTER_ROLE_ANNOTATION_KEY_VALUE}
 ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}
 ${PF_PROVISIONING_ENABLED}
@@ -733,12 +740,12 @@ echo "Initial IRSA_PING_ANNOTATION_KEY_VALUE: ${IRSA_PING_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_PA_ANNOTATION_KEY_VALUE: ${IRSA_PA_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_PD_ANNOTATION_KEY_VALUE: ${IRSA_PD_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_PF_ANNOTATION_KEY_VALUE: ${IRSA_PF_ANNOTATION_KEY_VALUE}"
+echo "Initial IRSA_SS_ANNOTATION_KEY_VALUE: ${IRSA_SS_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
-echo "Initial IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Initial IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -798,6 +805,11 @@ PRIMARY_TENANT_DOMAIN_NO_DOT_SUFFIX="${PRIMARY_TENANT_DOMAIN%.}"
 export PRIMARY_TENANT_DOMAIN="${PRIMARY_TENANT_DOMAIN_NO_DOT_SUFFIX:-${TENANT_DOMAIN_NO_DOT_SUFFIX}}"
 export SECONDARY_TENANT_DOMAINS="${SECONDARY_TENANT_DOMAINS}"
 
+# Default stage to lab-us1
+STAGE="${STAGE:-lab-us1}"
+# Versent passes STAGE as "stage-region" (e.g. "ga-us1") so we need to strip the region suffix
+export STAGE="${STAGE%%-*}"
+
 if "${IS_BELUGA_ENV}"; then
   DERIVED_GLOBAL_TENANT_DOMAIN="global.${TENANT_DOMAIN_NO_DOT_SUFFIX}"
 else
@@ -852,12 +864,12 @@ export IRSA_PING_ANNOTATION_KEY_VALUE=${IRSA_PING_ANNOTATION_KEY_VALUE:-''}
 export IRSA_PA_ANNOTATION_KEY_VALUE=${IRSA_PA_ANNOTATION_KEY_VALUE:-''}
 export IRSA_PD_ANNOTATION_KEY_VALUE=${IRSA_PD_ANNOTATION_KEY_VALUE:-''}
 export IRSA_PF_ANNOTATION_KEY_VALUE=${IRSA_PF_ANNOTATION_KEY_VALUE:-''}
+export IRSA_SS_ANNOTATION_KEY_VALUE=${IRSA_SS_ANNOTATION_KEY_VALUE:-''}
 export IRSA_ARGOCD_ANNOTATION_KEY_VALUE=${IRSA_ARGOCD_ANNOTATION_KEY_VALUE:-''}
 export IRSA_CWAGENT_ANNOTATION_KEY_VALUE=${IRSA_CWAGENT_ANNOTATION_KEY_VALUE:-''}
 export IRSA_LOGSTASH_ANNOTATION_KEY_VALUE=${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE:-''}
 export IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE=${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE:-''}
 export IRSA_THANOS_ANNOTATION_KEY_VALUE=${IRSA_THANOS_ANNOTATION_KEY_VALUE:-''}
-export IRSA_CLUSTER_AUTOSCALER_KEY_VALUE=${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE:-''}
 export IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE=${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE:-''}
 export IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE=${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE:-''}
 export IRSA_INGRESS_ANNOTATION_KEY_VALUE=${IRSA_INGRESS_ANNOTATION_KEY_VALUE:-''}
@@ -1042,12 +1054,12 @@ echo "Using IRSA_PING_ANNOTATION_KEY_VALUE: ${IRSA_PING_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_PA_ANNOTATION_KEY_VALUE: ${IRSA_PA_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_PD_ANNOTATION_KEY_VALUE: ${IRSA_PD_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_PF_ANNOTATION_KEY_VALUE: ${IRSA_PF_ANNOTATION_KEY_VALUE}"
+echo "Using IRSA_SS_ANNOTATION_KEY_VALUE: ${IRSA_SS_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_ARGOCD_ANNOTATION_KEY_VALUE: ${IRSA_ARGOCD_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_CWAGENT_ANNOTATION_KEY_VALUE: ${IRSA_CWAGENT_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_LOGSTASH_ANNOTATION_KEY_VALUE: ${IRSA_LOGSTASH_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_THANOS_ANNOTATION_KEY_VALUE: ${IRSA_THANOS_ANNOTATION_KEY_VALUE}"
-echo "Using IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Using IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
@@ -1246,11 +1258,11 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   set_var "IRSA_PA_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/pingaccess/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_PD_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/pingdirectory/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_PF_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/pingfederate/arn" "${IRSA_TEMPLATE}"
+  set_var "IRSA_SS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/self-service/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_CWAGENT_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cloudwatch-agent/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_LOGSTASH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/logstash/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/opensearch/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_THANOS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/thanos/arn" "${IRSA_TEMPLATE}"
-  set_var "IRSA_CLUSTER_AUTOSCALER_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/cluster-autoscaler/arn" "${IRSA_TEMPLATE}"
   # ArgoCD only for customer-hub
   set_var "IRSA_ARGOCD_ANNOTATION_KEY_VALUE" "" "${IRSA_BASE_PATH}" "irsa-argocd/arn" "${IRSA_TEMPLATE}"
   set_var "IRSA_INGRESS_ANNOTATION_KEY_VALUE" "" "${ACCOUNT_BASE_PATH}" "${ENV}/irsa-role/ingress-controller/arn" "${IRSA_TEMPLATE}"
@@ -1362,10 +1374,10 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     echo >> "${BASE_ENV_VARS}"
     echo "IS_BELUGA_ENV=true" >> "${BASE_ENV_VARS}"
 
-    sed -i.bak -e "/disable-karpenter/ s|^#*|#|g" "${K8S_CONFIGS_DIR}/base/cluster-tools/karpenter/kustomization.yaml"
+    sed -i.bak -e "/karpenter/ s|^#*||g" "${K8S_CONFIGS_DIR}/base/cluster-tools/kustomization.yaml"
     sed -i.bak -e "/disable-kubedownscaler/ s|^#*|#|g" "${K8S_CONFIGS_DIR}/base/cluster-tools/kube-downscaler/kustomization.yaml"
 
-    rm -f "${K8S_CONFIGS_DIR}/base/cluster-tools/karpenter/kustomization.yaml.bak"
+    rm -f "${K8S_CONFIGS_DIR}/base/cluster-tools/kustomization.yaml.bak"
     rm -f "${K8S_CONFIGS_DIR}/base/cluster-tools/kube-downscaler/kustomization.yaml.bak"
 
     # Update patches related to Beluga developer CDEs

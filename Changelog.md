@@ -32,13 +32,18 @@ _Changes:_
 - Adding Cross zone load balancing and graceful shutdown to nginx
 - Upgrade External DNS to v0.14.2
 - Disabling anonymous login for OpenSearch and removing prometheus_read role
-- Upgrade Cluster Autoscaler to v1.30.2
+- Upgrade nginx-ingress-controller to v1.11.2 and SigSci agent to 4.57.0
+- Upgrade cert-manager to v1.16.1
+- Upgrade Argocd to v2.12.4
+- Upgrade Kubectl to v1.30.4
+- Add p1as-self-service microservice
 
 _Changes:_
 
 - [X] PDO-5729 Update version regexes
 - [X] PDO-5888 Implement p1as-pingdirectory pipeline deploy stage
 - [X] PDO-5900 Add p1as-pingdirectory code-gen directory to PCB
+- [X] PDO-5901 Pingdirectory Monorepo Cleanup
 - [X] PDO-6511 Update static files in PF upgrade to v12.1.0 
 - [X] PDO-6573 Support customer bringing their own certificate for their external server and adding it to PingDataSync truststore
 - [X] PDO-6744 Refactor update and generate scripts to pull from microservice repo mirrors
@@ -47,15 +52,29 @@ _Changes:_
 - [X] PDO-7248 NewRelic: Upgrade APM agent to latest version
 - [X] PDO-7428 Update seal-secret-values.py to seal with namespace only. Update secret structure
 - [X] PDO-7445 Remove toplogy-descriptor volume mount from products where not needed
-- [X] PDO-7455 Upgrade Cluster Autoscaler to v1.30.2
 - [X] PDO-7469 De-duplicate prod-values.yaml
 - [X] PDO-7482 Fluentbit - remove unnecessary configuration
 - [X] PDO-7527 Grafana: Update PGO dashboards to be compatible with the current PGO version
 - [X] PDO-7608 Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - [X] PDO-7669 Thanos: Storage Gateway crashlooping with OOM killed when choosing old range of data on Prometheus/Grafana UI
+- [X] PDO-7717 Upgrade cert-manager to v1.16.1
+- [X] PDO-7738 Upgrade kubectl to v1.30.4
 - [X] PDO-8150 Improve Stability and Shutdown Handling
+- [X] PDO-8158 Add p1as-self-service microservice
 - [X] PDO-8193 Microservices profile repo feature branch testing fix
 - [X] PDO-8194 Upgrade External DNS to v0.14.2
+- [X] PDO-8363 OpenSearch: Add the Fluent Bit ingestion time field
+- [X] PDO-8144 Upgrade nginx-ingress-controller to v1.11.2 and SigSci agent to 4.57.0
+- [X] PDO-8373 Upgrade Argocd to v2.12.4
+- [X] PDO-8418 Create and add TLS roles to PingOne
+
+### 1.19.2.0
+
+_Changes:_
+
+- [X] PDO-8404 Integrate Logstash and OpenSearch Config into container Image
+- [X] PDO-8730 Prevent customer-p1-connection job from running on upgrades
+- [X] PDO-8843 FluentBit: Fix multiline parsing config for certain logs
 
 ### 1.19.1.0
 
