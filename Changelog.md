@@ -3,6 +3,7 @@
 _Changes:_
 
 - [X] PDO-7195 Alert when the PF connection to the datastore is lost or fails
+- [X] PDO-7765 Cost savings: Savings for 2.0.0 observability stack customer-hub
 - [X] PDO-8196 Include the Fluent Bit ingestion time field in the customer pipeline
 - [X] PDO-8355 Cronjob delete Job and PersistentVolumeClaim resources for PingDirectory backups
 - [X] PDO-8356 OpenSearch: Increase SC1 (warm) volume size
@@ -12,6 +13,7 @@ _Changes:_
 - [X] PDO-8730 Prevent customer-p1-connection job from running on upgrades
 - [X] PDO-8737 Force PingDirectory backup to run once at a time
 - [X] PDO-8783 Set AsyncRoot level to "INFO" in PF log4j2.xml file
+- [X] PDO-8825 Prometheus: Drop unused metrics
 - [X] PDO-8843 FluentBit: Fix multiline parsing config for certain logs
 
 ### 1.19.1.0
