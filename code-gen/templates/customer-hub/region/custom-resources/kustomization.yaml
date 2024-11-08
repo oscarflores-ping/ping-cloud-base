@@ -7,7 +7,7 @@
 kind: Kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 
-resources:
+resources: []
 
 # Create external ingresses, read notes in the file below before including (uncommenting) it.
 # - ext-ingresses.yaml
