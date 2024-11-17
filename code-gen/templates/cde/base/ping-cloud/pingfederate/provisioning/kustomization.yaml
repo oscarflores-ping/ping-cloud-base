@@ -5,7 +5,7 @@ resources: []
 ### Feature flag - To enable PingFederate Provisioning
 ### 1. Comment out the empty resources block above
 ### 2. Uncomment the resources block below
-#resources:
+# resources:
 # - ${K8S_GIT_URL}/k8s-configs/ping-cloud/${KUSTOMIZE_BASE}/pingfederate/provisioning?ref=${K8S_GIT_BRANCH}
 #
 # patchesStrategicMerge:
