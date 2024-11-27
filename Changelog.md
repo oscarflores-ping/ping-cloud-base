@@ -5,12 +5,16 @@
 - Update PingDirectory resource limits
 - Use code sharing methods for Logger.lib.sh
 - Reconcile Grafana differences with p1as-observability
+- Kustomize: Fix kustomizations to not be completely empty in order to support v5.1+
+- Update separate nodepool - non-consolidating
 
 _Changes:_
 
 - [X] PDO-4881 Use code sharing methods for Logger.lib.sh
+- [X] PDO-6116 Kustomize: Fix kustomizations to not be completely empty in order to support v5.1+
 - [X] PDO-7616 Update PingDirectory resource limits
 - [X] PDO-8109 Reconcile Grafana differences with p1as-observability
+- [X] PDO-8204 Update separate nodepool - non-consolidating
 
 ### 2.0.0
 
@@ -67,6 +71,7 @@ _Changes:_
 - [x] PDO-8416 Implement OIDC auth with RBAC in self-service
 - [X] PDO-8418 Create and add TLS roles to PingOne
 - [X] PDO-8788 Thanos: Disable in 2.0 Release
+- [X] PDO-8944 Exclude ping-cloud-dashboards repo from git branch reference replacement
 
 ### 1.19.2.0
 
