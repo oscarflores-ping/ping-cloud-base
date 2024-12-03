@@ -78,7 +78,8 @@ patches:
           app.kubernetes.io/role: ingress-nginx-private
 
 # strategic merge patches for ldaps configurations
-- path: add-ldaps-configs.yaml
+- path: add-ldaps-listener.yaml
+- path: add-ldaps-port.yaml
 
 # Strategic merge patches for the 'nginx-configuration' ConfigMap
 - path: add-custom-log-format.yaml
