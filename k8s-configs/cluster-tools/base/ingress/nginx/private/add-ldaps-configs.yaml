@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configuration
+data:
+  stream-snippet: |-
+    server {
+      listen 636 ssl;
+      proxy_pass pingdirectory.ping-cloud.svc.cluster.local:1636;
+
+      ssl_certificate /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
+      ssl_certificate_key /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
+    }
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx
+spec:
+  ports:
+    - name: ldap
+      port: 636
+      protocol: TCP
+      targetPort: 636
+
