@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: nginx-configuration
 data:
-  stream-snippet: |-
+  stream-snippet: |
     server {
       listen 636 ssl;
       proxy_pass pingdirectory.ping-cloud.svc.cluster.local:1636;
