@@ -6,9 +6,13 @@ metadata:
   name: ingress-nginx
 spec:
   ports:
-    - name: ldap
+    - name: ldap-passthrough
       port: 636
       protocol: TCP
       targetPort: 636
+    - name: ldaps-termination
+      port: 1636
+      protocol: TCP
+      targetPort: 1636
 
 ---
