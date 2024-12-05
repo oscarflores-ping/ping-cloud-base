@@ -7,10 +7,10 @@ data:
   stream-snippet: |
     server {
       listen 636 ssl;
-      proxy_pass pingdirectory.ping-cloud.svc.cluster.local:1636;
-
+      set $upstream "pingdirectory.ping-cloud.svc.cluster.local:1636";
+      proxy_pass $upstream;
+      proxy_ssl on;
       ssl_certificate /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
       ssl_certificate_key /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
     }
-
 ---
