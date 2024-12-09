@@ -10,9 +10,6 @@ spec:
       port: 636
       protocol: TCP
       targetPort: 636
-    - name: ldaps-termination
-      port: 1636
-      protocol: TCP
-      targetPort: 1636
+
 
 ---

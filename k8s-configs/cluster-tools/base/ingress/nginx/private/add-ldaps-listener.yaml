@@ -5,11 +5,25 @@ metadata:
   name: nginx-configuration
 data:
   stream-snippet: |
+    map $ssl_preread_server_name $backend {
+      "~^pingdirectory-admin\." ldap_passthrough;
+      default ldap_terminator;
+    }
+
+    upstream ldap_passthrough {
+      server pingdirectory.ping-cloud.svc.cluster.local:1636;
+    }
+
+    upstream ldap_terminator {
+      server 127.0.0.1:1636;
+    }
+
     server {
       listen 636;
-      set $upstream "pingdirectory.ping-cloud.svc.cluster.local:1636";
-      proxy_pass $upstream;
+      ssl_preread on;
+      proxy_pass $backend;
     }
+  
     server {
       listen 1636 ssl;
       set $upstream "pingdirectory.ping-cloud.svc.cluster.local:1636";
