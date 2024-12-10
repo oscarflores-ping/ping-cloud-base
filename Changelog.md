@@ -7,6 +7,9 @@
 - Reconcile Grafana differences with p1as-observability
 - Kustomize: Fix kustomizations to not be completely empty in order to support v5.1+
 - Update separate nodepool - non-consolidating
+- Enable consolidation for default nodepool and add multiple instance type
+- Remove helm-command.sh shim workaround
+- Upgrade Kustomize to 5.5.0
 
 _Changes:_
 
@@ -15,6 +18,9 @@ _Changes:_
 - [X] PDO-7616 Update PingDirectory resource limits
 - [X] PDO-8109 Reconcile Grafana differences with p1as-observability
 - [X] PDO-8204 Update separate nodepool - non-consolidating
+- [X] PDO-8205 Enable consolidation for default nodepool and add multiple instance type
+- [X] PDO-8371 Remove helm-command.sh shim workaround
+- [X] PDO-8372 Upgrade Kustomize to 5.5.0
 
 ### 2.0.0
 
