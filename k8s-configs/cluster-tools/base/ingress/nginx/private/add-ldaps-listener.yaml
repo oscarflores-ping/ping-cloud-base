@@ -8,6 +8,7 @@ data:
     ## setting up shared dictionaries for stream_certificate.lua
     lua_shared_dict stream_certificate_data 20M;
     lua_shared_dict stream_certificate_servers 5M;
+    server_names_hash_bucket_size 128;
     
     ## Setting default fallback certificate for termination
     ssl_certificate /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
