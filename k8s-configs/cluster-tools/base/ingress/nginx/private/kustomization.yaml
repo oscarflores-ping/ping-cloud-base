@@ -10,6 +10,12 @@ resources:
 
 namespace: ingress-nginx-private
 
+configMapGenerator:
+- name: ldaps-cert-config
+  literals:
+    - SECRET_NAME=""
+    - NAMESPACE=""
+
 labels:
   # Replace all labels as our OOTB nginx base includes labels like app.kubernetes.io/instance which is also used by ArgoCD
   - pairs:

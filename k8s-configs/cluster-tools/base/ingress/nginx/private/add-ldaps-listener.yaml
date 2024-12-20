@@ -5,15 +5,6 @@ metadata:
   name: nginx-configuration
 data:
   stream-snippet: |
-    ## setting up shared dictionaries for stream_certificate.lua
-    lua_shared_dict stream_certificate_data 20M;
-    lua_shared_dict stream_certificate_servers 5M;
-    server_names_hash_bucket_size 128;
-    
-    ## Setting default fallback certificate for termination
-    ssl_certificate /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
-    ssl_certificate_key /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
-
     ## Two created backends:
     ## pingdirectory-admin: hostname used to maintain functionality for envs that have x509 authentication enabled for PingDirectory
     ## default: all other traffic to be terminated at nginx.
@@ -33,9 +24,9 @@ data:
       set $upstream "pingdirectory.ping-cloud.svc.cluster.local:1636";
       proxy_pass $upstream;
       proxy_ssl on;
-      ssl_certificate_by_lua_block {
-        local certificate = require('stream_certificate')
-        certificate.call()
-      }
+
+      ## setting as default for now, adding in dynamically setting cert in PDO-7596
+      ssl_certificate /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
+      ssl_certificate_key /etc/ingress-controller/ssl/ping-cloud-acme-tls-cert.pem;
     }
 ---
