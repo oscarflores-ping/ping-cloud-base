@@ -113,7 +113,7 @@
 #                                  | names)                                             |
 #                                  | Examplelist:"pingaccess pingfederate pingdelegator |
 #                                  | pingaccess-was              "                      |
-#                                  |                                                    |
+#                                  |                                                    |              
 # GLOBAL_TENANT_DOMAIN             | Region-independent URL used for DNS failover/      | Replaces the first segment of
 #                                  | routing.                                           | the TENANT_DOMAIN value with the
 #                                  |                                                    | string "global". For example, it will
@@ -291,6 +291,9 @@
 #                                  | generated. If the target directory exists, it will |
 #                                  | be deleted.                                        |
 #                                  |                                                    |
+# TELEPORT_RESOURCE_ID             | The teleport resource ID provided by teleport      |
+#                                  | admin at initial setup time                        |
+#                                  |                                                    |
 # TENANT_DOMAIN                    | The tenant's domain suffix that's common to all    | ci-cd.ping-oasis.com
 #                                  | CDEs e.g. k8s-icecream.com. The tenant domain in   |
 #                                  | each CDE is assumed to have the CDE name as the    |
@@ -443,6 +446,7 @@ ${IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE}
 ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}
 ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}
 ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}
+${GLOBAL_DNS_IAM_ROLE}
 ${KARPENTER_ROLE_ANNOTATION_KEY_VALUE}
 ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}
 ${PF_PROVISIONING_ENABLED}
@@ -591,7 +595,7 @@ set_ssh_key_pair() {
 
   # Unsupported flow - no private key provided at all or not a file
   else
-    echo 'Provide SSH key-pair files via SSH_ID_PUB_FILE/SSH_ID_KEY_FILE env vars, or omit both for key-pair to be generated'
+    echo 'ERROR - EXITING: Provide SSH key-pair files via SSH_ID_PUB_FILE/SSH_ID_KEY_FILE env vars, or omit both for key-pair to be generated'
     exit 1
   fi
 }
@@ -621,8 +625,13 @@ organize_code_for_csr() {
     echo "Using PRIMARY_REGION_ONLY_DEPLOY: ${PRIMARY_REGION_ONLY_DEPLOY}"
     echo
 
+    # exclude anything that shouldn't deploy to dev envs
+    if (${IS_BELUGA_ENV} && test "${DEVELOPER_DEPLOY}" = "false"); then
+      continue
+    fi
+
     # Add the app directory to the tmp directory if the deploy env var aligns with the env env var
-    if (test "${ENV}" = "${CUSTOMER_HUB}" && ${CHUB_DEPLOY}) || (test "${ENV}" != "${CUSTOMER_HUB}" && ${CDE_DEPLOY}); then
+    if { test "${ENV}" = "${CUSTOMER_HUB}" && test "${CHUB_DEPLOY}" = "true"; } || { test "${ENV}" != "${CUSTOMER_HUB}" && test "${CDE_DEPLOY}" = "true"; }; then
       local app_target_dir=${ENV_DIR}/${app_name}
       mkdir -p "${app_target_dir}"
 
@@ -684,6 +693,7 @@ fi
 ########################################################################################################################
 echo "Initial TENANT_NAME: ${TENANT_NAME}"
 echo "Initial SIZE: ${SIZE}"
+echo "Initial STAGE: ${STAGE}"
 
 echo "Initial SUPPORTED_ENVIRONMENT_TYPES: ${SUPPORTED_ENVIRONMENT_TYPES}"
 echo "Initial ENVIRONMENTS: ${ENVIRONMENTS}"
@@ -760,6 +770,7 @@ echo "Initial IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION
 echo "Initial IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Initial IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Initial IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
+echo "Initial GLOBAL_DNS_IAM_ROLE: ${GLOBAL_DNS_IAM_ROLE}"
 echo "Initial IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
 echo "Initial KARPENTER_ROLE_ANNOTATION_KEY_VALUE: ${KARPENTER_ROLE_ANNOTATION_KEY_VALUE}"
 echo "Initial NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
@@ -777,6 +788,8 @@ echo "Initial APP_RESYNC_SECONDS: ${APP_RESYNC_SECONDS}"
 echo "Initial DASHBOARD_REPO_URL: ${DASHBOARD_REPO_URL}"
 
 echo "Initial CERT_RENEW_BEFORE: ${CERT_RENEW_BEFORE}"
+
+echo "Initial TELEPORT_RESOURCE_ID: ${TELEPORT_RESOURCE_ID}"
 
 echo ---
 
@@ -883,6 +896,7 @@ export IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE=${IRSA_OPENSEARCH_ANNOTATION_KEY_VAL
 export IRSA_CLUSTER_AUTOSCALER_KEY_VALUE=${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE:-''}
 export IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE=${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE:-''}
 export IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE=${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE:-''}
+export GLOBAL_DNS_IAM_ROLE=${GLOBAL_DNS_IAM_ROLE:-''}
 export IRSA_INGRESS_ANNOTATION_KEY_VALUE=${IRSA_INGRESS_ANNOTATION_KEY_VALUE:-''}
 
 export CLUSTER_ENDPOINT=${CLUSTER_ENDPOINT:-''}
@@ -978,7 +992,10 @@ if test ! "${KNOWN_HOSTS_CLUSTER_STATE_REPO}"; then
   else
     SSH_HOST_KEY_TYPE='rsa'
   fi
-  KNOWN_HOSTS_CLUSTER_STATE_REPO="$(ssh-keyscan -t "${SSH_HOST_KEY_TYPE}" -H "${URL_HOST}" 2>/dev/null)"
+  # With some versions of ssh-keyscan (for example starting with MacOS 15.0), the host portion is returned in the output
+  # Since not all versions of ssh-keyscan do this, we don't assume they will function the same way and instead
+  # remove the hostname from the output, otherwise the yaml and known hosts will break
+  KNOWN_HOSTS_CLUSTER_STATE_REPO="$(ssh-keyscan -t "${SSH_HOST_KEY_TYPE}" -H "${URL_HOST}" 2>/dev/null | grep -v "${URL_HOST}")"
 fi
 export KNOWN_HOSTS_CLUSTER_STATE_REPO
 
@@ -1073,6 +1090,7 @@ echo "Using IRSA_OPENSEARCH_ANNOTATION_KEY_VALUE: ${IRSA_OPENSEARCH_ANNOTATION_K
 echo "Using IRSA_CLUSTER_AUTOSCALER_KEY_VALUE: ${IRSA_CLUSTER_AUTOSCALER_KEY_VALUE}"
 echo "Using IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE: ${IRSA_CERT_MANAGER_ANNOTATION_KEY_VALUE}"
 echo "Using IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE: ${IRSA_EXTERNAL_DNS_ANNOTATION_KEY_VALUE}"
+echo "Using GLOBAL_DNS_IAM_ROLE: ${GLOBAL_DNS_IAM_ROLE}"
 echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
 
 echo "Using CLUSTER_ENDPOINT: ${CLUSTER_ENDPOINT}"
@@ -1138,6 +1156,8 @@ cp ../.gitignore "${PROFILE_REPO_DIR}"
 
 echo "${PING_CLOUD_BASE_COMMIT_SHA}" > "${TARGET_DIR}/pcb-commit-sha.txt"
 
+# Setting Role for accessing global dns
+set_var "GLOBAL_DNS_IAM_ROLE" "" "/pcpt/" "global-dns/iam-role/cert-manager/arn"
 
 # The SUPPORTED_ENVIRONMENT_TYPES variable can either be the CDE names (e.g. dev, test, stage, prod) or the CHUB name "customer-hub",
 # or the corresponding branch names (e.g. v1.8.0-dev, v1.8.0-test, v1.8.0-stage, v1.8.0-master, v1.8.0-customer-hub).
@@ -1313,6 +1333,8 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
   echo "Using NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
   echo "Using CLUSTER_ENDPOINT: ${CLUSTER_ENDPOINT}"
+  echo "Using TELEPORT_RESOURCE_ID: ${TELEPORT_RESOURCE_ID}"
+  echo "Using STAGE: ${STAGE}"
 
   ######################################################################################################################
   # Massage files into correct structure for push-cluster-state script
