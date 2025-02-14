@@ -2,7 +2,7 @@
 
 # If VERBOSE is true, then output line-by-line execution
 "${VERBOSE:-false}" && set -x
-"${EXIT_ON_FAILURE:-false}" && set -e
+"${EXIT_ON_FAILURE:-true}" && set -e
 
 ########################################################################################################################
 #
@@ -391,7 +391,6 @@ ${USER_BASE_DN_4}
 ${USER_BASE_DN_5}
 ${ADMIN_CONSOLE_BRANDING}
 ${ENVIRONMENT_PREFIX}
-${NEW_RELIC_ENVIRONMENT_NAME}
 ${PF_PD_BIND_PORT}
 ${PF_PD_BIND_PROTOCOL}
 ${PF_PD_BIND_USESSL}
@@ -535,8 +534,6 @@ add_derived_variables() {
   # single P14C tenant. All of these apps will be created within the "Administrators" environment in the tenant.
   export ENVIRONMENT_PREFIX="\${TENANT_NAME}-\${REGION_ENV}-\${REGION_NICK_NAME}"
 
-  # The name of the environment as it will appear on the NewRelic console.
-  export NEW_RELIC_ENVIRONMENT_NAME="\${TENANT_NAME}_\${REGION_ENV}_\${REGION_NICK_NAME}_k8s-cluster"
 }
 
 ########################################################################################################################
@@ -1538,6 +1535,11 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
 
   echo "=====> Done creating environment '${ENV}'"
 )
+subshell_exit_code=$?
+if [[ $subshell_exit_code -ne 0 ]]; then
+    echo "Environment '${ENV}' creation failed with exit code ${subshell_exit_code}"
+    exit $subshell_exit_code
+fi
 done
 
 cp -p push-cluster-state.sh "${TARGET_DIR}"

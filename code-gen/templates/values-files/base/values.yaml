@@ -16,11 +16,13 @@ global:
   ############################################################
   sealedSecrets: false
   secrets:
+    newrelic:
+      newRelicLicenseKey: ${NEW_RELIC_LICENSE_KEY_BASE64}
     ping-cloud:
       ###### Shared Secrets ######
 
       # License key that is used to enable and point to a NewRelic instance
-      newrelicLicenseKey: dW51c2VkCg==
+      newrelicLicenseKey: ${NEW_RELIC_LICENSE_KEY_BASE64}
       # Profile Repo SSH Id key secret
       sshIdKeyBase64: ${SSH_ID_KEY_BASE64}
       # Used as default password for PD admins (used by PD and datasync)
@@ -62,7 +64,7 @@ global:
       # More info here: https://confluence.pingidentity.com/display/proserv/Enabling+X.509+Authentication+with+PingDirectory
       # pdTruststoreCertOne: certOneData
       # pdTruststoreCertTwo: certTwoData
-
+      
   ########################################################
   # Multi-region parameters
   ########################################################
