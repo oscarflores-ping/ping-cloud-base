@@ -2,7 +2,7 @@
 
 # If VERBOSE is true, then output line-by-line execution
 "${VERBOSE:-false}" && set -x
-"${EXIT_ON_FAILURE:-true}" && set -e
+"${EXIT_ON_FAILURE:-false}" && set -e
 
 # This script is a wrapper for the upgrade-profile-repo.sh script and may be used to aid the operator in updating the
 # profile repo to a target Beluga version. It abstracts away the location of the upgrade-profile-repo.sh script, which
