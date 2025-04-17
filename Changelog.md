@@ -1,5 +1,13 @@
 # Changelog
 
+### 2.2.0
+
+- No Changes
+
+_Changes:_
+
+- None
+
 ### 2.1.0
 
 - Update PingDirectory resource limits
@@ -24,6 +32,8 @@
 - Removing existing CW refs from Monorepo
 - Removing existing NewRelic refs from Monorepo
 - Update to use kube-rbac-proxy from ECR
+- Add customer-issuer to p14c-bootstrap configs
+- Add customer-issuer to PA Admin pingaccess-p1as-sso container
 
 _Changes:_
 
@@ -41,6 +51,7 @@ _Changes:_
 - [X] PDO-7616 Update PingDirectory resource limits
 - [X] PDO-7763 Cost Savings: NGINX  (public and private): Reduce CPU and mem requests
 - [X] PDO-8109 Reconcile Grafana differences with p1as-observability
+- [X] PDO-8157 Configure PA Admin API to add customer tenant for OAuth
 - [X] PDO-8372 Upgrade Kustomize to 5.5.0
 - [X] PDO-8383 EKS Managed Add-Ons: EBS CSI
 - [X] PDO-8727 Add a monitor and alert for kube-proxy or larger network issues within a cluster
@@ -49,6 +60,7 @@ _Changes:_
 - [X] PDO-8981 Add self-service URL to env_vars
 - [X] PDO-9073 OpenSearch: Deploys in Yellow state due to bootstrap job having run prematurely
 - [X] PDO-9122 Revise the ISM and remove WARM node pools and its components
+- [X] PDO-9159 Create customer P1 tenant issuer configmap
 - [X] PDO-9299 Support new folder structure /deploy for PingAccess upgrades; Support hook overrides for upgrade init-container
 - [X] PDO-9310 Migrate PingOne ORT URLs
 

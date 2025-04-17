@@ -281,6 +281,13 @@ patches:
             securityContext:
               runAsNonRoot: true
               runAsUser: 999
+            env:
+              - name: HELM_CACHE_HOME
+                value: /helm-working-dir
+              - name: HELM_CONFIG_HOME
+                value: /helm-working-dir
+              - name: HELM_DATA_HOME
+                value: /helm-working-dir
             volumeMounts:
               - mountPath: /var/run/argocd
                 name: var-files
@@ -314,6 +321,8 @@ patches:
               - name: tools-dir
                 mountPath: /home/argocd/.local/lib/python3.7/site-packages/git_remote_codecommit/__init__.py
                 subPath: __init__.py
+              - name: helm-working-dir
+                mountPath: /helm-working-dir
             resources:
               requests:
                 memory: "100Mi"
@@ -416,7 +425,7 @@ patches:
         spec:
           initContainers:
           - name: argocd-bootstrap
-            image: public.ecr.aws/r2h3l6e4/pingcloud-services/argocd-bootstrap/dev:v2.1-release-branch-latest
+            image: public.ecr.aws/r2h3l6e4/pingcloud-services/argocd-bootstrap/dev:v2.2-release-branch-latest
             imagePullPolicy: Always
             envFrom:
               - configMapRef:
@@ -432,7 +441,7 @@ patches:
         spec:
           initContainers:
           - name: argocd-p1as-oauth
-            image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v2.1-release-branch-latest
+            image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v2.2-release-branch-latest
             imagePullPolicy: Always
             securityContext:
               allowPrivilegeEscalation: false

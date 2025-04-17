@@ -185,6 +185,8 @@ global:
   userBaseDn_5: "${USER_BASE_DN_5}"
   # The prefix of a SSM Param / Secret path that contains TLS config
   customerTlsSsmPathPrefix: "${CUSTOMER_TLS_SSM_PATH_PREFIX}"
+  # The prefix of a SSM Param / Secret path that contains self-service configurations
+  selfServiceSsmPathPrefix : "${SELF_SERVICE_SSM_PATH_PREFIX}"
 
   ########################################################
   # Public Hostnames
@@ -215,4 +217,4 @@ global:
 
   # pingcloud-p14c-bootstrap application settings
   p14cIntegration:
-    image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v2.1-release-branch-latest
+    image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v2.2-release-branch-latest
