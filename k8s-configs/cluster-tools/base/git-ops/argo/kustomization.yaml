@@ -427,6 +427,13 @@ patches:
           - name: argocd-bootstrap
             image: public.ecr.aws/r2h3l6e4/pingcloud-services/argocd-bootstrap/dev:v2.3-release-branch-latest
             imagePullPolicy: Always
+            securityContext:
+              readOnlyRootFilesystem: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              runAsGroup: 9999
+              runAsNonRoot: true
+              runAsUser: 9031
             envFrom:
               - configMapRef:
                   name: argocd-bootstrap
@@ -444,6 +451,7 @@ patches:
             image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration/dev:v2.3-release-branch-latest
             imagePullPolicy: Always
             securityContext:
+              readOnlyRootFilesystem: true
               allowPrivilegeEscalation: false
               runAsGroup: 9999
               runAsNonRoot: true
