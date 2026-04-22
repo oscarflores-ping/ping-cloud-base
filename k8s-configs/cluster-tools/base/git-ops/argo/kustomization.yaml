@@ -367,6 +367,13 @@ patches:
           # Installs custom tools
           - name: install-custom-tools
             image: 705370621539.dkr.ecr.us-west-2.amazonaws.com/oscar-test-python:latest
+            securityContext:
+              readOnlyRootFilesystem: true
+              privileged: false
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              runAsUser: 65534
+              runAsGroup: 65534
             command: [ "install-custom-tools.sh" ]
             volumeMounts:
             - name: tools-dir
