@@ -37,7 +37,7 @@ helmCharts:
           interruptionQueue: interruption-${CLUSTER_NAME}
         serviceAccount:
           annotations:
-            eks.amazonaws.com/role-arn: ${IRSA_KARPENTER_ANNOTATION_KEY_VALUE}
+            eks.amazonaws.com/role-arn: arn:aws:iam::705370621539:role/ojflores-primary-KarpenterControllerRole
         p1asEC2NodeClass:
           instanceProfile: "${KARPENTER_INSTANCE_PROFILE}"
 
