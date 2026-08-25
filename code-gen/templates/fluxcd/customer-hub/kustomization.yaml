@@ -21,7 +21,7 @@ helmCharts:
   - name: p1as-karpenter
     releaseName: p1as-karpenter
     namespace: kube-system
-    version: v2.4-release-branch-latest
+    version: ${K8S_GIT_BRANCH}-latest
     repo: oci://${ECR_REGISTRY_NAME}/dev
     valuesInline:
       global:
@@ -31,15 +31,15 @@ helmCharts:
         controller:
           env:
             - name: AWS_REGION
-              value: us-west-2
+              value: ${REGION}
         settings:
           clusterName: ${CLUSTER_NAME}
           interruptionQueue: interruption-${CLUSTER_NAME}
         serviceAccount:
           annotations:
-            eks.amazonaws.com/role-arn: arn:aws:iam::705370621539:role/ojflores-primary-KarpenterControllerRole
+            ${IRSA_KARPENTER_ANNOTATION_KEY_VALUE}
         p1asEC2NodeClass:
-          instanceProfile: "${KARPENTER_INSTANCE_PROFILE}"
+          instanceProfile: ${KARPENTER_INSTANCE_PROFILE}
 
 patchesStrategicMerge:
 # generate-cluster-state.sh copies this from code-gen/templates/customer-hub/base/cluster-tools/git-ops/
