@@ -4,6 +4,7 @@
 
 - Add deploy wrapper to capture deploy failure logs
 - Introduce 'revisionHistoryLimit' of 0 replicas to DA deployment to avoid cluster cluttering
+- Update generate-cluster-state.sh to use helm charts in bootstrap kustomization.yaml
 - Update pod-reaper and httpbin images
 - Add integration tests for PingDelegator JSON access log format and OpenSearch ingestion
 - Fix Fluentbit multiline filter concatenating JSON audit log lines, causing admin-event-detail entries to be dropped
@@ -19,6 +20,7 @@ _Changes:_
 - [X] PDO-7316 JSON Logging: Implement JSON logging for PingDelegator logs
 - [X] PDO-8875 Add deploy wrapper to capture deploy failure logs
 - [X] PDO-9115 Introduce 'revisionHistoryLimit' to Delegated Admin deployment object to avoid cluttering
+- [X] PDO-10267 Update generate-cluster-state.sh to use helm charts in bootstrap kustomization.yaml
 - [X] PDO-10598 JSON Logging: Update index templates in OpenSearch
 - [X] PDO-10168 Update pod-reaper and httpbin images
 - [X] PDO-10226 Implement JSON logging for Ingress logs
